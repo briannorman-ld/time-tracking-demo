@@ -1,0 +1,172 @@
+.rich-notes-editor {
+  width: 100%;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  overflow: hidden;
+}
+
+.rich-notes-toolbar {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--ld-border);
+  background: var(--ld-bg-subtle);
+}
+
+.rich-notes-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.75rem;
+  padding: 0 0.4rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ld-text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.rich-notes-toolbar button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  margin-top: 2px;
+  padding: 0.35rem 0.5rem;
+  background: var(--ld-text);
+  color: var(--ld-surface);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  border-radius: var(--ld-radius);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease 0s;
+  z-index: 20;
+}
+
+.rich-notes-toolbar button[data-tooltip]:hover::after {
+  opacity: 1;
+  transition-delay: 0.2s;
+}
+
+.rich-notes-toolbar button:hover {
+  background: var(--ld-surface-hover);
+  color: var(--ld-text);
+}
+
+.rich-notes-toolbar button.active {
+  background: var(--ld-primary-muted);
+  color: var(--ld-primary);
+  border-color: var(--ld-primary);
+}
+
+.rich-notes-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rich-notes-toolbar-sep {
+  width: 1px;
+  margin: 0 0.25rem;
+  background: var(--ld-border);
+  align-self: stretch;
+}
+
+.rich-notes-editor .tiptap {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  min-height: inherit;
+  outline: none;
+  color: var(--ld-text);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.rich-notes-editor .tiptap p {
+  margin: 0 0 0.5em 0;
+}
+
+.rich-notes-editor .tiptap p:last-child {
+  margin-bottom: 0;
+}
+
+.rich-notes-editor .tiptap ul,
+.rich-notes-editor .tiptap ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.rich-notes-editor .tiptap li {
+  margin: 0.2em 0;
+}
+
+.rich-notes-editor .tiptap blockquote {
+  margin: 0.5em 0;
+  padding-left: 1em;
+  border-left: 3px solid var(--ld-border);
+  color: var(--ld-text-muted);
+}
+
+.rich-notes-editor .tiptap code {
+  padding: 0.15em 0.35em;
+  background: var(--ld-bg-subtle);
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.rich-notes-editor .tiptap pre {
+  margin: 0.5em 0;
+  padding: 0.75rem;
+  background: var(--ld-bg-subtle);
+  border-radius: var(--ld-radius);
+  overflow-x: auto;
+}
+
+.rich-notes-editor .tiptap pre code {
+  padding: 0;
+  background: none;
+}
+
+.rich-notes-editor .tiptap hr {
+  margin: 0.75em 0;
+  border: none;
+  border-top: 1px solid var(--ld-border);
+}
+
+.rich-notes-editor .tiptap h1,
+.rich-notes-editor .tiptap h2,
+.rich-notes-editor .tiptap h3 {
+  margin: 0.75em 0 0.35em 0;
+  font-weight: 600;
+  color: var(--ld-text);
+}
+
+.rich-notes-editor .tiptap h1 { font-size: 1.35rem; }
+.rich-notes-editor .tiptap h2 { font-size: 1.15rem; }
+.rich-notes-editor .tiptap h3 { font-size: 1.05rem; }
+
+.rich-notes-editor .tiptap a {
+  color: var(--ld-primary);
+  text-decoration: underline;
+}
+
+.rich-notes-editor .tiptap a:hover {
+  color: var(--ld-primary-hover);
+}
+
+.rich-notes-editor .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--ld-text-muted);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.rich-notes-editor-prose {
+  min-height: 6rem;
+}

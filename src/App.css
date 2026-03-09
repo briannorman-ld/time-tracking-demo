@@ -1,0 +1,66 @@
+/* LaunchDarkly–inspired theme: dark backgrounds, purple primary, clean dev-tool aesthetic */
+:root {
+  --ld-bg: #0f0f12;
+  --ld-bg-subtle: #18181b;
+  --ld-surface: #27272a;
+  --ld-surface-hover: #3f3f46;
+  --ld-border: #3f3f46;
+  --ld-border-subtle: #27272a;
+  --ld-text: #fafafa;
+  --ld-text-muted: #a1a1aa;
+  --ld-primary: #6d28d9;
+  --ld-primary-hover: #7c3aed;
+  --ld-primary-muted: rgba(109, 40, 217, 0.2);
+  --ld-danger: #dc2626;
+  --ld-danger-muted: rgba(220, 38, 38, 0.15);
+  --ld-warning: #d97706;
+  --ld-success: #16a34a;
+  --ld-radius: 6px;
+  --ld-radius-lg: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--ld-bg);
+  color: var(--ld-text);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+main {
+  min-height: calc(100vh - 52px);
+  background: var(--ld-bg);
+}
+
+.assistant-fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ld-primary);
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.4);
+}
+
+.assistant-fab:hover {
+  background: var(--ld-primary-hover);
+}
+
+.assistant-overlay {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 90;
+}

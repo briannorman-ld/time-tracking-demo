@@ -1,0 +1,148 @@
+.timer-block {
+  padding: 1rem;
+  background: var(--ld-bg-subtle);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius-lg);
+  margin-bottom: 1rem;
+}
+
+.timer-block h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: var(--ld-text);
+}
+
+.timer-block-hint {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.85rem;
+  color: var(--ld-text-muted);
+}
+
+.timer-customer-wrap {
+  margin-bottom: 0.5rem;
+}
+
+.timer-new-customer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+  max-width: 280px;
+}
+
+.timer-new-customer input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+}
+
+.timer-new-customer button {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--ld-radius);
+  border: none;
+  background: var(--ld-primary);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.timer-new-customer button:hover:not(:disabled) {
+  background: var(--ld-primary-hover);
+}
+
+.timer-new-customer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.timer-display {
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 0.75rem;
+  color: var(--ld-text);
+}
+
+.timer-block input[type="text"],
+.timer-block select {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+}
+
+.timer-notes-editor {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.timer-block input::placeholder {
+  color: var(--ld-text-muted);
+}
+
+.timer-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.timer-customer-label {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--ld-text-muted);
+}
+
+.timer-start,
+.timer-resume,
+.timer-pause,
+.timer-save {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--ld-radius);
+  cursor: pointer;
+  font-size: 0.95rem;
+  border: none;
+}
+
+.timer-start,
+.timer-resume {
+  background: var(--ld-primary);
+  color: #fff;
+}
+
+.timer-start:hover,
+.timer-resume:hover {
+  background: var(--ld-primary-hover);
+}
+
+.timer-pause {
+  background: var(--ld-warning);
+  color: #fff;
+}
+
+.timer-pause:hover {
+  filter: brightness(1.1);
+}
+
+.timer-save {
+  background: var(--ld-success);
+  color: #fff;
+}
+
+.timer-save:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.timer-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

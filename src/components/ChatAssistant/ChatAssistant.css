@@ -1,0 +1,137 @@
+.chat-assistant {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  max-width: 420px;
+  background: var(--ld-bg-subtle);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color: var(--ld-text);
+}
+
+.chat-assistant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-assistant-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--ld-text);
+}
+
+.chat-assistant-header button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  color: var(--ld-text-muted);
+}
+
+.chat-assistant-header button:hover {
+  color: var(--ld-text);
+}
+
+.chat-assistant-hint {
+  font-size: 0.8rem;
+  color: var(--ld-text-muted);
+  margin: 0;
+}
+
+.chat-assistant-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-assistant-input input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+}
+
+.chat-assistant-input button {
+  padding: 0.5rem 1rem;
+  border-radius: var(--ld-radius);
+  border: none;
+  background: var(--ld-primary);
+  color: #fff;
+  cursor: pointer;
+}
+
+.chat-assistant-input button:hover {
+  background: var(--ld-primary-hover);
+}
+
+.chat-assistant-proposal pre {
+  font-size: 0.75rem;
+  background: var(--ld-surface);
+  padding: 0.75rem;
+  border-radius: var(--ld-radius);
+  overflow: auto;
+  margin: 0 0 0.5rem 0;
+  border: 1px solid var(--ld-border);
+  color: var(--ld-text-muted);
+}
+
+.chat-assistant-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-assistant-actions button {
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--ld-radius);
+  cursor: pointer;
+}
+
+.chat-assistant-actions button:first-child {
+  background: var(--ld-primary);
+  color: #fff;
+  border: none;
+}
+
+.chat-assistant-actions button:first-child:hover {
+  background: var(--ld-primary-hover);
+}
+
+.chat-assistant-actions button:last-child {
+  background: var(--ld-surface);
+  border: 1px solid var(--ld-border);
+  color: var(--ld-text);
+}
+
+.chat-assistant-actions button:last-child:hover {
+  background: var(--ld-surface-hover);
+}
+
+.chat-assistant-message {
+  color: var(--ld-success);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.chat-assistant-unknown {
+  color: var(--ld-text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.chat-assistant-list {
+  color: var(--ld-text);
+}
+
+.chat-assistant-list ul {
+  margin: 0.25rem 0 0 0;
+  padding-left: 1.25rem;
+}
+
+.chat-assistant-list li {
+  margin: 0.25rem 0;
+}

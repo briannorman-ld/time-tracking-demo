@@ -1,0 +1,173 @@
+.entry-form {
+  margin-bottom: 1rem;
+}
+
+.entry-form.full-form {
+  padding: 1rem;
+  background: var(--ld-bg-subtle);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius-lg);
+  max-width: 400px;
+}
+
+.entry-form.full-form label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--ld-text);
+}
+
+.entry-form-customer-wrap {
+  display: block;
+  margin-bottom: 0;
+}
+
+.entry-form.quick-add .customer-select-quick-add {
+  max-width: 140px;
+}
+
+.entry-form-new-customer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+  max-width: 280px;
+}
+
+.entry-form-new-customer input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+  font-size: inherit;
+}
+
+.entry-form-new-customer button {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--ld-radius);
+  border: none;
+  background: var(--ld-primary);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.entry-form-new-customer button:hover:not(:disabled) {
+  background: var(--ld-primary-hover);
+}
+
+.entry-form-new-customer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.entry-form.full-form input,
+.entry-form.full-form select {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+}
+
+.entry-form-notes-editor {
+  max-width: 100%;
+}
+
+.entry-form .entry-form-notes-editor label {
+  display: block;
+}
+
+.entry-form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.entry-form-checkbox input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.entry-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.entry-form-actions button {
+  padding: 0.5rem 1rem;
+  border-radius: var(--ld-radius);
+  cursor: pointer;
+  border: none;
+}
+
+.entry-form-actions button[type="submit"] {
+  background: var(--ld-primary);
+  color: #fff;
+}
+
+.entry-form-actions button[type="submit"]:hover {
+  background: var(--ld-primary-hover);
+}
+
+.entry-form-actions button[type="button"] {
+  background: var(--ld-surface);
+  color: var(--ld-text);
+  border: 1px solid var(--ld-border);
+}
+
+.entry-form-actions button[type="button"]:hover {
+  background: var(--ld-surface-hover);
+}
+
+.entry-form.quick-add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.entry-form.quick-add input[type="text"],
+.entry-form.quick-add input[type="number"],
+.entry-form.quick-add select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+}
+
+.entry-form.quick-add input[type="number"],
+.entry-form.quick-add select {
+  width: 60px;
+}
+
+.entry-form.quick-add select {
+  width: 140px;
+}
+
+.entry-form-suffix {
+  font-size: 0.9rem;
+  color: var(--ld-text-muted);
+}
+
+.entry-form.quick-add button {
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--ld-radius);
+  background: var(--ld-primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.entry-form.quick-add button:hover {
+  background: var(--ld-primary-hover);
+}

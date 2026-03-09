@@ -1,0 +1,170 @@
+.reports-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  color: var(--ld-text);
+}
+
+.reports-page h1 {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+}
+
+.reports-page h2 {
+  margin: 1.5rem 0 0.75rem 0;
+  font-size: 1.1rem;
+}
+
+.reports-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  padding: 1rem;
+  background: var(--ld-bg-subtle);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius-lg);
+}
+
+.reports-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--ld-text-muted);
+}
+
+.reports-filters input,
+.reports-filters select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+}
+
+.reports-summary {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.reports-summary-card {
+  padding: 1rem 1.25rem;
+  background: var(--ld-bg-subtle);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.reports-summary-label {
+  font-size: 0.85rem;
+  color: var(--ld-text-muted);
+}
+
+.reports-summary-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ld-text);
+}
+
+.reports-by-customer ul,
+.reports-entries ul,
+.reports-entries-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.reports-by-customer li,
+.reports-entries li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--ld-border);
+  font-size: 0.9rem;
+}
+
+.reports-day-group,
+.reports-week-group {
+  margin-bottom: 1.5rem;
+}
+
+.reports-day-group:last-child,
+.reports-week-group:last-child {
+  margin-bottom: 0;
+}
+
+.reports-day-heading,
+.reports-week-heading {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ld-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.reports-day-total,
+.reports-week-total {
+  font-weight: 500;
+  color: var(--ld-primary);
+  flex-shrink: 0;
+}
+
+.reports-day-subheading {
+  margin: 0.75rem 0 0.25rem 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ld-text-muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.reports-day-subheading:first-of-type {
+  margin-top: 0;
+}
+
+.reports-day-in-week {
+  margin-left: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--ld-border);
+}
+
+.reports-no-entries {
+  color: var(--ld-text-muted);
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0 0;
+}
+
+.reports-customer-name {
+  font-weight: 500;
+  min-width: 160px;
+}
+
+.reports-customer-hours {
+  color: var(--ld-primary);
+  font-weight: 500;
+}
+
+.reports-entry-notes {
+  color: var(--ld-text-muted);
+  flex: 1;
+  min-width: 0;
+}
+
+.reports-entries li span:first-child {
+  min-width: 120px;
+}
+
+.reports-entries li span:nth-child(2) {
+  min-width: 120px;
+}

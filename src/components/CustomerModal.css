@@ -1,0 +1,225 @@
+.customer-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.customer-modal {
+  background: var(--ld-bg-subtle);
+  border: 1px solid var(--ld-border);
+  border-radius: 12px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--ld-border);
+}
+
+.customer-modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--ld-text);
+}
+
+.customer-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ld-text-muted);
+}
+
+.customer-modal-close:hover {
+  color: var(--ld-text);
+}
+
+.customer-modal-body {
+  padding: 1.25rem;
+  overflow: auto;
+}
+
+.customer-modal-section {
+  margin-bottom: 1.5rem;
+}
+
+.customer-modal-section:last-child {
+  margin-bottom: 0;
+}
+
+.customer-modal-section label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--ld-text);
+}
+
+.customer-modal-name-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.customer-modal-name-row input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+  font-size: 1rem;
+}
+
+.customer-modal-name-row button {
+  padding: 0.5rem 1rem;
+  border-radius: var(--ld-radius);
+  border: none;
+  background: var(--ld-primary);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.customer-modal-name-row button:hover {
+  background: var(--ld-primary-hover);
+}
+
+.customer-modal-name-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.customer-modal-section h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--ld-text);
+}
+
+.customer-modal-empty {
+  color: var(--ld-text-muted);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.customer-modal-summary {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--ld-text-muted);
+}
+
+.customer-modal-entries {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow: auto;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius-lg);
+  background: var(--ld-surface);
+}
+
+.customer-modal-entries li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--ld-border);
+  font-size: 0.9rem;
+  color: var(--ld-text);
+}
+
+.customer-modal-entries li:last-child {
+  border-bottom: none;
+}
+
+.customer-modal-entries .entry-date {
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.customer-modal-entries .entry-duration {
+  color: var(--ld-text-muted);
+}
+
+.customer-modal-entries .entry-notes {
+  color: var(--ld-text-muted);
+  flex: 1;
+  min-width: 0;
+}
+
+.customer-modal-actions {
+  padding-top: 1rem;
+  border-top: 1px solid var(--ld-border);
+}
+
+.customer-modal-delete-btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--ld-radius);
+  border: 1px solid var(--ld-danger);
+  background: transparent;
+  color: var(--ld-danger);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.customer-modal-delete-btn:hover {
+  background: var(--ld-danger-muted);
+}
+
+.customer-modal-delete-confirm p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.95rem;
+  color: var(--ld-text-muted);
+}
+
+.customer-modal-delete-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.customer-modal-delete-buttons button {
+  padding: 0.5rem 1rem;
+  border-radius: var(--ld-radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.customer-modal-delete-buttons button:first-child {
+  border: 1px solid var(--ld-border);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+}
+
+.customer-modal-delete-buttons button:first-child:hover {
+  background: var(--ld-surface-hover);
+}
+
+.customer-modal-delete-confirm-btn {
+  border: none !important;
+  background: var(--ld-danger) !important;
+  color: #fff !important;
+}
+
+.customer-modal-delete-confirm-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.customer-modal-delete-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

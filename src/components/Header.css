@@ -1,0 +1,174 @@
+.app-header {
+  background: var(--ld-bg-subtle);
+  color: var(--ld-text);
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--ld-border);
+}
+
+.app-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-header-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--ld-text);
+}
+
+.app-header-nav {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.app-header-nav-link {
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--ld-radius);
+  color: var(--ld-text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.app-header-nav-link:hover {
+  background: var(--ld-surface);
+  color: var(--ld-text);
+}
+
+.app-header-nav-link.active {
+  background: var(--ld-primary-muted);
+  color: var(--ld-primary);
+  font-weight: 500;
+}
+
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-header-user {
+  position: relative;
+}
+
+.app-header-user-trigger {
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--ld-radius);
+  border: 1px solid var(--ld-border);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.app-header-user-trigger:hover {
+  background: var(--ld-surface-hover);
+}
+
+.app-header-user-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+}
+
+.app-header-user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.25rem;
+  min-width: 180px;
+  background: var(--ld-bg-subtle);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 11;
+  overflow: hidden;
+}
+
+.app-header-user-option {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  text-align: left;
+  border: none;
+  background: none;
+  color: var(--ld-text);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.app-header-user-option:hover {
+  background: var(--ld-surface);
+}
+
+.app-header-user-option.active {
+  background: var(--ld-primary-muted);
+  color: var(--ld-primary);
+  font-weight: 600;
+}
+
+.app-header-user-option.logout {
+  border-top: 1px solid var(--ld-border);
+  color: var(--ld-text-muted);
+}
+
+.app-header-user-option.logout:hover {
+  color: var(--ld-text);
+}
+
+.app-header-timer-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  max-width: 560px;
+  margin: 0 1rem;
+}
+
+.app-header-timer-info {
+  font-size: 0.9rem;
+  color: var(--ld-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.app-header-timer-display {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--ld-text);
+}
+
+.app-header-timer-pause,
+.app-header-timer-resume,
+.app-header-timer-save {
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--ld-radius);
+  font-size: 0.85rem;
+  border: none;
+  cursor: pointer;
+}
+
+.app-header-timer-pause {
+  background: var(--ld-warning);
+  color: #fff;
+}
+
+.app-header-timer-resume {
+  background: var(--ld-primary);
+  color: #fff;
+}
+
+.app-header-timer-save {
+  background: var(--ld-success);
+  color: #fff;
+}
+
+.app-header-timer-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

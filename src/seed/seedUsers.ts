@@ -1,0 +1,72 @@
+/**
+ * Seed demo users for passwordless auth.
+ * In production, users would come from your IdP; this is for local learning only.
+ */
+import type { DemoUser } from '@/types/user'
+
+export const DEMO_USERS: DemoUser[] = [
+  {
+    id: 'user-brian-norman',
+    username: 'bnorman',
+    displayName: 'Brian',
+    email: 'brian@demo.local',
+    appRole: 'admin',
+    planTier: 'enterprise',
+    betaTester: true,
+    teams: ['Enterprise SE', 'Field Engineering'],
+    timezone: 'America/Denver',
+    locationLabel: 'Denver, CO',
+  },
+  {
+    id: 'user-alex',
+    username: 'alex',
+    displayName: 'Alex',
+    email: 'alex@demo.local',
+    appRole: 'user',
+    planTier: 'pro',
+    betaTester: false,
+    teams: ['Engineering'],
+    timezone: 'America/Los_Angeles',
+    locationLabel: 'San Francisco, CA',
+  },
+  {
+    id: 'user-priya',
+    username: 'priya',
+    displayName: 'Priya',
+    email: 'priya@demo.local',
+    appRole: 'user',
+    planTier: 'enterprise',
+    betaTester: true,
+    teams: ['Product', 'Engineering'],
+    timezone: 'Asia/Kolkata',
+    locationLabel: 'Mumbai, IN',
+  },
+  {
+    id: 'user-marco',
+    username: 'marco',
+    displayName: 'Marco',
+    email: 'marco@demo.local',
+    appRole: 'user',
+    planTier: 'pro',
+    betaTester: false,
+    teams: ['Sales'],
+    timezone: 'Europe/Rome',
+    locationLabel: 'Rome, IT',
+  },
+  {
+    id: 'user-jen',
+    username: 'jen',
+    displayName: 'Jen',
+    email: 'jen@demo.local',
+    appRole: 'viewer',
+    planTier: 'free',
+    betaTester: false,
+    teams: [],
+    timezone: 'America/New_York',
+    locationLabel: 'New York, NY',
+  },
+]
+
+export function getDemoUserById(id: string): DemoUser | undefined {
+  return DEMO_USERS.find((u) => u.id === id)
+}

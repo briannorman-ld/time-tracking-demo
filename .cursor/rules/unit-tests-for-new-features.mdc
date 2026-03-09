@@ -1,0 +1,29 @@
+---
+description: Add unit tests for new functionality and features
+alwaysApply: true
+---
+
+# Unit Tests for New Functionality
+
+When adding **new functionality or features**, always add or extend unit tests in the same change.
+
+## What to test
+
+- **New lib/utils**: Add a `*.test.ts` next to the module (e.g. `src/lib/foo.ts` → `src/lib/foo.test.ts`). Mock external deps (e.g. `@/lib/db`, `localStorage`) with Vitest `vi.mock()`.
+- **New React components**: Add a `*.test.tsx` in the same folder. Use `@testing-library/react` and `userEvent` for interactions; mock context/providers as needed.
+- **New context/hooks**: Add a `*.test.tsx` that renders the provider and a test consumer, then assert behavior (state, callbacks, persistence).
+- **New API/entry points**: Test success and error paths; mock the underlying store or API.
+
+## Conventions (already in this project)
+
+- **Runner**: Vitest (`npm run test`, `npm run test:run`).
+- **Pattern**: `src/**/*.{test,spec}.{ts,tsx}`; setup in `src/test/setup.ts` with `@testing-library/jest-dom`.
+- **Mocks**: Use top-level `vi.mock('@/lib/db', () => ({ ... }))` (or equivalent) so modules see the mock at load time.
+
+## Checklist
+
+Before considering a feature “done”:
+
+1. New or modified behavior is covered by at least one test.
+2. Tests are in the correct place (colocated `*.test.ts` / `*.test.tsx`).
+3. `npm run test:run` passes (use Node 18+).
