@@ -1,3 +1,7 @@
 # Local env (do not commit real keys)
 .env
 .env.local
+
+# Vite
+node_modules/.vite
+.vite

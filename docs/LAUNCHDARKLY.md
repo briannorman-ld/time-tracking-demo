@@ -15,6 +15,7 @@ Flags currently used in the app include:
 
 - `navLayoutVariant` — `'tabs'` or `'sidebar'`
 - `enableTimer`, `enableReports`, `assistantEnabled` — booleans
+- `showThemeToggle` — boolean; show/hide the light/dark mode button in the sidebar (LD “Show” flag: **Show: theme toggle**).
 - (Previously `entryCreateUx` — form vs quick-add.)
 
 To use LaunchDarkly, you will:

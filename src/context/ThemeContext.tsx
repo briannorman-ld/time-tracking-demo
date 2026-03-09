@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { useFlags } from 'launchdarkly-react-client-sdk'
 
 const THEME_KEY = 'time-tracker-demo-theme'
 
@@ -43,16 +44,20 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const flags = useFlags()
+  const showThemeToggle = flags.showThemeToggle ?? true
   const [theme, setThemeState] = useState<Theme>(() => {
     const t = loadTheme()
     applyTheme(t)
     return t
   })
 
+  const effectiveTheme = showThemeToggle ? theme : 'light'
+
   useEffect(() => {
-    applyTheme(theme)
-    saveTheme(theme)
-  }, [theme])
+    applyTheme(effectiveTheme)
+    if (showThemeToggle) saveTheme(theme)
+  }, [effectiveTheme, showThemeToggle, theme])
 
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next)
@@ -63,8 +68,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ theme, setTheme, toggleTheme }),
-    [theme, setTheme, toggleTheme]
+    () => ({ theme: effectiveTheme, setTheme, toggleTheme }),
+    [effectiveTheme, setTheme, toggleTheme]
   )
 
   return (
