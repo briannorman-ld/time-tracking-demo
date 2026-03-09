@@ -16,7 +16,7 @@ Switching users updates the session and triggers **`identifyUser(userContext)`**
 `UserContext` (see `src/types/user.ts`) includes:
 
 - userId, username, displayName, email
-- traits: appRole, planTier, betaTester, teams, timezone, locationLabel
+- traits: appRole, planTier, betaTester, teams, timezone, city
 
 This is what you pass to `identifyUser()` and, in a real setup, to your flag/analytics SDK.
 

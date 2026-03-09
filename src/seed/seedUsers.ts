@@ -11,11 +11,12 @@ export const DEMO_USERS: DemoUser[] = [
     displayName: 'Brian',
     email: 'brian@demo.local',
     appRole: 'admin',
-    planTier: 'enterprise',
+    planTier: 'premium',
     betaTester: true,
     teams: ['Enterprise SE', 'Field Engineering'],
     timezone: 'America/Denver',
-    locationLabel: 'Denver, CO',
+    city: 'Denver',
+    country: 'US',
   },
   {
     id: 'user-alex',
@@ -27,7 +28,8 @@ export const DEMO_USERS: DemoUser[] = [
     betaTester: false,
     teams: ['Engineering'],
     timezone: 'America/Los_Angeles',
-    locationLabel: 'San Francisco, CA',
+    city: 'San Francisco',
+    country: 'US',
   },
   {
     id: 'user-priya',
@@ -39,7 +41,8 @@ export const DEMO_USERS: DemoUser[] = [
     betaTester: true,
     teams: ['Product', 'Engineering'],
     timezone: 'Asia/Kolkata',
-    locationLabel: 'Mumbai, IN',
+    city: 'Mumbai',
+    country: 'IN',
   },
   {
     id: 'user-marco',
@@ -51,7 +54,8 @@ export const DEMO_USERS: DemoUser[] = [
     betaTester: false,
     teams: ['Sales'],
     timezone: 'Europe/Rome',
-    locationLabel: 'Rome, IT',
+    city: 'Rome',
+    country: 'IT',
   },
   {
     id: 'user-jen',
@@ -63,7 +67,8 @@ export const DEMO_USERS: DemoUser[] = [
     betaTester: false,
     teams: [],
     timezone: 'America/New_York',
-    locationLabel: 'New York, NY',
+    city: 'New York',
+    country: 'US',
   },
 ]
 

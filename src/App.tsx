@@ -6,6 +6,7 @@ import { TimerProvider } from '@/context/TimerContext'
 import { TimeTotalsInvalidatorProvider } from '@/context/TimeTotalsInvalidatorContext'
 import { initFlags } from '@/lib/flags'
 import { evaluateFlag } from '@/lib/flags'
+import { buildLaunchDarklyContext } from '@/lib/launchDarklyContext'
 import { Header } from '@/components/Header'
 import { AppLayout } from '@/components/AppLayout'
 import { ChatAssistant } from '@/components/ChatAssistant/ChatAssistant'
@@ -16,20 +17,13 @@ import { TimeEntries } from '@/components/TimeEntries/TimeEntries'
 
 initFlags()
 
-/** Updates LaunchDarkly context when the logged-in user changes. */
+/** Updates LaunchDarkly context when the logged-in user changes. Uses multi-kind context (user + device). */
 function LDIdentify() {
   const ldClient = useLDClient()
   const { user } = useSession()
   useEffect(() => {
     if (!ldClient) return
-    if (user) {
-      ldClient.identify({
-        kind: 'user',
-        key: user.id,
-        name: user.displayName,
-        email: user.email,
-      })
-    }
+    ldClient.identify(buildLaunchDarklyContext(user))
   }, [ldClient, user])
   return null
 }
