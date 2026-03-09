@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useTheme } from '@/context/ThemeContext'
 import './Sidebar.css'
 
 const NAV = [
@@ -14,6 +15,7 @@ interface SidebarProps {
 
 export function Sidebar({ todayHours = 0, weekHours = 0 }: SidebarProps) {
   const location = useLocation()
+  const { theme, toggleTheme } = useTheme()
 
   return (
     <aside className="app-sidebar">
@@ -32,6 +34,17 @@ export function Sidebar({ todayHours = 0, weekHours = 0 }: SidebarProps) {
           </Link>
         ))}
       </nav>
+      <div className="app-sidebar-theme-section">
+        <button
+          type="button"
+          className="app-sidebar-theme-toggle"
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+        >
+          {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
+        </button>
+      </div>
       <div className="app-sidebar-totals">
         <div className="app-sidebar-total">
           <span className="app-sidebar-total-label">Today</span>
