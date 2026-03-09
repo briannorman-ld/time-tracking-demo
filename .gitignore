@@ -1,0 +1,3 @@
+# Local env (do not commit real keys)
+.env
+.env.local

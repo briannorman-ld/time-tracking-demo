@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useLDClient } from 'launchdarkly-react-client-sdk'
 import { SessionProvider, useSession } from '@/context/SessionContext'
 import { TimerProvider } from '@/context/TimerContext'
 import { TimeTotalsInvalidatorProvider } from '@/context/TimeTotalsInvalidatorContext'
@@ -14,6 +15,24 @@ import { ReportsPage } from '@/pages/ReportsPage'
 import { TimeEntries } from '@/components/TimeEntries/TimeEntries'
 
 initFlags()
+
+/** Updates LaunchDarkly context when the logged-in user changes. */
+function LDIdentify() {
+  const ldClient = useLDClient()
+  const { user } = useSession()
+  useEffect(() => {
+    if (!ldClient) return
+    if (user) {
+      ldClient.identify({
+        kind: 'user',
+        key: user.id,
+        name: user.displayName,
+        email: user.email,
+      })
+    }
+  }, [ldClient, user])
+  return null
+}
 
 function AppContent() {
   const { user } = useSession()
@@ -70,6 +89,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <SessionProvider>
+        <LDIdentify />
         <TimerProvider>
           <TimeTotalsInvalidatorProvider>
             <AppContent />
