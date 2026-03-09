@@ -1,5 +1,6 @@
 /* LaunchDarkly–inspired theme: dark backgrounds, purple primary, clean dev-tool aesthetic */
-:root {
+:root,
+[data-theme="dark"] {
   --ld-bg: #0f0f12;
   --ld-bg-subtle: #18181b;
   --ld-surface: #27272a;
@@ -17,6 +18,24 @@
   --ld-success: #16a34a;
   --ld-radius: 6px;
   --ld-radius-lg: 8px;
+}
+
+[data-theme="light"] {
+  --ld-bg: #fafafa;
+  --ld-bg-subtle: #f4f4f5;
+  --ld-surface: #e4e4e7;
+  --ld-surface-hover: #d4d4d8;
+  --ld-border: #d4d4d8;
+  --ld-border-subtle: #e4e4e7;
+  --ld-text: #18181b;
+  --ld-text-muted: #52525b;
+  --ld-primary: #6d28d9;
+  --ld-primary-hover: #5b21b6;
+  --ld-primary-muted: rgba(109, 40, 217, 0.15);
+  --ld-danger: #dc2626;
+  --ld-danger-muted: rgba(220, 38, 38, 0.12);
+  --ld-warning: #d97706;
+  --ld-success: #16a34a;
 }
 
 * {

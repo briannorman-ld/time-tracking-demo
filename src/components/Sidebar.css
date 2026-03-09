@@ -36,8 +36,29 @@
   font-weight: 500;
 }
 
-.app-sidebar-totals {
+.app-sidebar-theme-section {
   margin-top: auto;
+  padding: 1rem 5px 0 5px;
+}
+
+.app-sidebar-theme-toggle {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  border: none;
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.app-sidebar-theme-toggle:hover {
+  background: var(--ld-surface-hover);
+}
+
+.app-sidebar-totals {
+  margin-top: 0;
   padding-top: 1rem;
   border-top: 1px solid var(--ld-border);
 }
