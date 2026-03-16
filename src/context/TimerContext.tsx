@@ -21,11 +21,16 @@ import {
   type PersistedActiveTimer,
 } from '@/utils/timerStorage'
 import { v4 as uuidv4 } from 'uuid'
+import { trackLaunchDarklyEvent, LD_EVENT_TIMER_STARTED } from '@/lib/launchDarklyEvents'
+import { createEntry } from '@/lib/entries'
+import { useTimeTotalsInvalidate } from '@/context/TimeTotalsInvalidatorContext'
 
 export type TimerStatus = 'idle' | 'running' | 'paused'
 
 export interface ActiveTimer {
   id: string
+  /** ID of the time entry created when this timer was started; updated on pause. */
+  entryId?: string
   customer: string
   project: string
   notes: string
@@ -35,21 +40,23 @@ export interface ActiveTimer {
 }
 
 interface TimerContextValue {
-  /** Draft for the Start form (customer, project, notes before starting). */
+  /** Draft for the Start form (customer, notes before starting). */
   draftCustomer: string
-  draftProject: string
   draftNotes: string
   setDraftCustomer: (v: string) => void
-  setDraftProject: (v: string) => void
   setDraftNotes: (v: string) => void
-  /** Start a new timer from draft; clears draft. */
+  /** Start a new timer from draft; creates a time entry and clears draft. */
   start: () => void
+  /** Start a new timer with the given details (e.g. from a saved entry). Creates entry and timer. */
+  startWith: (customer: string, notes: string) => void
   /** All active timers (running or paused). */
   activeTimers: ActiveTimer[]
+  /** Pause a timer; updates the entry's duration (entry was created on start). */
   pause: (id: string) => void
+  /** Resume a paused timer. Does not create an entry. */
   resume: (id: string) => void
-  /** Update customer/project/notes for an active timer. */
-  updateTimer: (id: string, updates: { customer?: string; project?: string; notes?: string }) => void
+  /** Update customer/project/notes/entryId for an active timer. */
+  updateTimer: (id: string, updates: { customer?: string; project?: string; notes?: string; entryId?: string }) => void
   /** Elapsed seconds for a given timer (live for running, static for paused). */
   getElapsedSec: (id: string) => number
 }
@@ -66,12 +73,14 @@ function toPersisted(t: ActiveTimer, userId: string): PersistedActiveTimer {
     startTime: t.startTime,
     elapsedSec: t.elapsedSec,
     running: t.status === 'running',
+    entryId: t.entryId,
   }
 }
 
 function fromPersisted(p: PersistedActiveTimer): ActiveTimer {
   return {
     id: p.id,
+    entryId: p.entryId,
     customer: p.customer,
     project: p.project ?? '',
     notes: p.notes,
@@ -83,11 +92,12 @@ function fromPersisted(p: PersistedActiveTimer): ActiveTimer {
 
 export function TimerProvider({ children }: { children: ReactNode }) {
   const { user } = useSession()
+  const invalidateTotals = useTimeTotalsInvalidate()
   const [activeTimers, setActiveTimers] = useState<ActiveTimer[]>([])
   const [draftCustomer, setDraftCustomer] = useState('')
-  const [draftProject, setDraftProject] = useState('')
   const [draftNotes, setDraftNotes] = useState('')
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const loadedUserIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (!user) {
@@ -95,6 +105,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       setDraftCustomer('')
       setDraftProject('')
       setDraftNotes('')
+      loadedUserIdRef.current = null
       return
     }
     const persisted = loadActiveTimers(user.id)
@@ -109,15 +120,15 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     }
     const running = timers.find((t) => t.status === 'running')
     if (running) {
-      const elapsedSinceStart = Math.floor((Date.now() - running.startTime) / 1000)
-      setActiveTimers(
-        timers.map((t) =>
-          t.id === running.id
-            ? { ...t, elapsedSec: t.elapsedSec + elapsedSinceStart, startTime: Date.now() - (t.elapsedSec + elapsedSinceStart) * 1000 }
-            : t
-        )
+      // Keep running timer: total elapsed = time since original start; leave startTime so display is correct.
+      const totalElapsedSec = Math.floor((Date.now() - running.startTime) / 1000)
+      timers = timers.map((t) =>
+        t.id === running.id ? { ...t, elapsedSec: totalElapsedSec } : t
       )
-    } else {
+    }
+    // Only apply loaded state on initial load or when user changed; don't overwrite after resume/pause/start.
+    if (loadedUserIdRef.current !== user.id) {
+      loadedUserIdRef.current = user.id
       setActiveTimers(timers)
     }
   }, [user?.id])
@@ -151,25 +162,83 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   }, [activeTimers.find((t) => t.status === 'running')?.id])
 
   const start = useCallback(() => {
-    if (!draftCustomer.trim()) return
+    if (!draftCustomer.trim() || !user) return
     const now = Date.now()
-    const newTimer: ActiveTimer = {
-      id: uuidv4(),
-      customer: draftCustomer.trim(),
-      project: draftProject.trim(),
-      notes: draftNotes.trim(),
-      startTime: now,
-      elapsedSec: 0,
-      status: 'running',
-    }
-    setActiveTimers((prev) => [
-      ...prev.map((t) => (t.status === 'running' ? { ...t, status: 'paused' as const } : t)),
-      newTimer,
-    ])
-    setDraftCustomer('')
-    setDraftProject('')
-    setDraftNotes('')
-  }, [draftCustomer, draftProject, draftNotes])
+    const today = new Date().toISOString().slice(0, 10)
+    const customer = draftCustomer.trim()
+    const notes = draftNotes.trim()
+    createEntry(user.id, {
+      customer,
+      notes,
+      date: today,
+      durationMinutes: 0,
+      source: 'timer',
+    }).then((entry) => {
+      const newTimer: ActiveTimer = {
+        id: uuidv4(),
+        entryId: entry.id,
+        customer,
+        project: '',
+        notes,
+        startTime: now,
+        elapsedSec: 0,
+        status: 'running',
+      }
+      setActiveTimers((prev) => [
+        ...prev.map((t) => (t.status === 'running' ? { ...t, status: 'paused' as const } : t)),
+        newTimer,
+      ])
+      setDraftCustomer('')
+      setDraftNotes('')
+      trackLaunchDarklyEvent(LD_EVENT_TIMER_STARTED, {
+        timerId: newTimer.id,
+        entryId: entry.id,
+        userId: user.id,
+        customer: newTimer.customer,
+      })
+      invalidateTotals?.()
+    })
+  }, [draftCustomer, draftNotes, user, invalidateTotals])
+
+  const startWith = useCallback(
+    (customer: string, notes: string) => {
+      if (!customer.trim() || !user) return
+      const now = Date.now()
+      const today = new Date().toISOString().slice(0, 10)
+      const c = customer.trim()
+      const n = notes.trim()
+      createEntry(user.id, {
+        customer: c,
+        notes: n,
+        date: today,
+        durationMinutes: 0,
+        source: 'timer',
+      }).then((entry) => {
+        const newTimer: ActiveTimer = {
+          id: uuidv4(),
+          entryId: entry.id,
+          customer: c,
+          project: '',
+          notes: n,
+          startTime: now,
+          elapsedSec: 0,
+          status: 'running',
+        }
+        setActiveTimers((prev) => [
+          ...prev.map((t) => (t.status === 'running' ? { ...t, status: 'paused' as const } : t)),
+          newTimer,
+        ])
+        trackLaunchDarklyEvent(LD_EVENT_TIMER_STARTED, {
+          timerId: newTimer.id,
+          entryId: entry.id,
+          userId: user.id,
+          customer: newTimer.customer,
+        })
+        invalidateTotals?.()
+      })
+    },
+    [user, invalidateTotals]
+  )
 
   const pause = useCallback((id: string) => {
     setActiveTimers((prev) =>
@@ -182,6 +251,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const resume = useCallback((id: string) => {
+    // Only updates timer state to running. Does NOT create a time entry or trigger LD events.
     const now = Date.now()
     setActiveTimers((prev) =>
       prev.map((t) => {
@@ -197,7 +267,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
-  const updateTimer = useCallback((id: string, updates: { customer?: string; project?: string; notes?: string }) => {
+  const updateTimer = useCallback((id: string, updates: { customer?: string; project?: string; notes?: string; entryId?: string }) => {
     setActiveTimers((prev) =>
       prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
     )
@@ -217,12 +287,11 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
   const value: TimerContextValue = {
     draftCustomer,
-    draftProject,
     draftNotes,
     setDraftCustomer,
-    setDraftProject,
     setDraftNotes,
     start,
+    startWith,
     activeTimers,
     pause,
     resume,

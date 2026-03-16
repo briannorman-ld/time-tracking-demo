@@ -2,9 +2,35 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TimerProvider, useTimer } from '@/context/TimerContext'
+import { trackLaunchDarklyEvent, LD_EVENT_TIMER_STARTED } from '@/lib/launchDarklyEvents'
 
 vi.mock('@/context/SessionContext', () => ({
   useSession: () => ({ user: { id: 'test-user' } }),
+}))
+
+vi.mock('@/lib/launchDarklyEvents', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/launchDarklyEvents')>()
+  return { ...actual, trackLaunchDarklyEvent: vi.fn() }
+})
+
+const mockCreateEntry = vi.fn(() =>
+  Promise.resolve({
+    id: 'mock-entry-id',
+    userId: 'test-user',
+    customer: 'Acme',
+    project: '',
+    notes: '',
+    date: new Date().toISOString().slice(0, 10),
+    durationMinutes: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    source: 'timer',
+    schemaVersion: 2,
+    billable: true,
+  })
+)
+vi.mock('@/lib/entries', () => ({
+  createEntry: (...args: unknown[]) => mockCreateEntry(...args),
 }))
 
 const saveActiveTimers = vi.fn()
@@ -23,10 +49,8 @@ vi.mock('@/utils/timerStorage', () => ({
 function TestConsumer() {
   const {
     draftCustomer,
-    draftProject,
     draftNotes,
     setDraftCustomer,
-    setDraftProject,
     setDraftNotes,
     start,
     activeTimers,
@@ -43,17 +67,12 @@ function TestConsumer() {
         onChange={(e) => setDraftCustomer(e.target.value)}
       />
       <input
-        data-testid="draft-project"
-        value={draftProject}
-        onChange={(e) => setDraftProject(e.target.value)}
-      />
-      <input
         data-testid="draft-notes"
         value={draftNotes}
         onChange={(e) => setDraftNotes(e.target.value)}
       />
       <button type="button" onClick={start}>
-        Start
+        Start Timer
       </button>
       <div data-testid="active-count">{activeTimers.length}</div>
       {activeTimers.map((t) => (
@@ -89,12 +108,22 @@ describe('TimerContext', () => {
       </TimerProvider>
     )
     await user.type(screen.getByTestId('draft-customer'), 'Acme')
-    await user.click(screen.getByRole('button', { name: 'Start' }))
+    await user.click(screen.getByRole('button', { name: 'Start Timer' }))
+    await screen.findByText('running', {}, { timeout: 2000 })
     expect(screen.getByTestId('active-count')).toHaveTextContent('1')
     expect(screen.getByTestId('draft-customer')).toHaveValue('')
     const timerId = screen.getByTestId('active-count').nextElementSibling?.getAttribute('data-testid')?.replace('timer-', '') ?? ''
     expect(screen.getByTestId(`timer-customer-${timerId}`)).toHaveTextContent('Acme')
     expect(screen.getByTestId(`timer-status-${timerId}`)).toHaveTextContent('running')
+    expect(trackLaunchDarklyEvent).toHaveBeenCalledWith(
+      LD_EVENT_TIMER_STARTED,
+      expect.objectContaining({
+        userId: 'test-user',
+        customer: 'Acme',
+        entryId: 'mock-entry-id',
+      })
+    )
+    expect(vi.mocked(trackLaunchDarklyEvent).mock.calls[0][1]).toHaveProperty('timerId', timerId)
   })
 
   it('does not start when draft customer is empty', async () => {
@@ -104,7 +133,7 @@ describe('TimerContext', () => {
         <TestConsumer />
       </TimerProvider>
     )
-    await user.click(screen.getByRole('button', { name: 'Start' }))
+    await user.click(screen.getByRole('button', { name: 'Start Timer' }))
     expect(screen.getByTestId('active-count')).toHaveTextContent('0')
   })
 
@@ -116,7 +145,8 @@ describe('TimerContext', () => {
       </TimerProvider>
     )
     await user.type(screen.getByTestId('draft-customer'), 'Acme')
-    await user.click(screen.getByRole('button', { name: 'Start' }))
+    await user.click(screen.getByRole('button', { name: 'Start Timer' }))
+    await screen.findByText('running', {}, { timeout: 2000 })
     const pauseButtons = screen.getAllByRole('button', { name: 'Pause' })
     await user.click(pauseButtons[0])
     const timerId = screen.getByTestId('active-count').nextElementSibling?.getAttribute('data-testid')?.replace('timer-', '') ?? ''
@@ -131,7 +161,8 @@ describe('TimerContext', () => {
       </TimerProvider>
     )
     await user.type(screen.getByTestId('draft-customer'), 'Acme')
-    await user.click(screen.getByRole('button', { name: 'Start' }))
+    await user.click(screen.getByRole('button', { name: 'Start Timer' }))
+    await screen.findByText('running', {}, { timeout: 2000 })
     await user.click(screen.getByRole('button', { name: 'Pause' }))
     await user.click(screen.getByRole('button', { name: 'Resume' }))
     const timerId = screen.getByTestId('active-count').nextElementSibling?.getAttribute('data-testid')?.replace('timer-', '') ?? ''
@@ -146,7 +177,8 @@ describe('TimerContext', () => {
       </TimerProvider>
     )
     await user.type(screen.getByTestId('draft-customer'), 'Acme')
-    await user.click(screen.getByRole('button', { name: 'Start' }))
+    await user.click(screen.getByRole('button', { name: 'Start Timer' }))
+    await screen.findByText('running', {}, { timeout: 2000 })
     await user.click(screen.getByRole('button', { name: 'Update' }))
     const timerId = screen.getByTestId('active-count').nextElementSibling?.getAttribute('data-testid')?.replace('timer-', '') ?? ''
     expect(screen.getByTestId(`timer-customer-${timerId}`)).toHaveTextContent('Updated')
@@ -160,7 +192,8 @@ describe('TimerContext', () => {
       </TimerProvider>
     )
     await user.type(screen.getByTestId('draft-customer'), 'Acme')
-    await user.click(screen.getByRole('button', { name: 'Start' }))
+    await user.click(screen.getByRole('button', { name: 'Start Timer' }))
+    await screen.findByText('running', {}, { timeout: 2000 })
     const timerId = screen.getByTestId('active-count').nextElementSibling?.getAttribute('data-testid')?.replace('timer-', '') ?? ''
     const elapsedEl = screen.getByTestId(`timer-elapsed-${timerId}`)
     expect(Number(elapsedEl.textContent)).toBeGreaterThanOrEqual(0)
@@ -174,7 +207,8 @@ describe('TimerContext', () => {
       </TimerProvider>
     )
     await user.type(screen.getByTestId('draft-customer'), 'Acme')
-    await user.click(screen.getByRole('button', { name: 'Start' }))
+    await user.click(screen.getByRole('button', { name: 'Start Timer' }))
+    await screen.findByText('running', {}, { timeout: 2000 })
     expect(saveActiveTimers).toHaveBeenCalled()
   })
 })

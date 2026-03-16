@@ -8,7 +8,7 @@ import {
 } from 'react'
 import type { DemoUser } from '@/types/user'
 import { userToContext } from '@/types/user'
-import { getDemoUserById } from '@/seed/seedUsers'
+import { getDemoUserById } from '@/lib/userStore'
 import { identifyUser } from '@/lib/integration'
 import { trackEvent } from '@/utils/trackEvent'
 

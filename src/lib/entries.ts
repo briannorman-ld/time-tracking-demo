@@ -6,6 +6,9 @@ import { db } from '@/lib/db'
 import type { TimeEntry } from '@/types/entry'
 import { SCHEMA_VERSION } from '@/types/entry'
 import { trackEvent } from '@/utils/trackEvent'
+import {
+  trackTimeEntryCreated,
+} from '@/lib/launchDarklyEvents'
 
 export type EntrySource = TimeEntry['source']
 
@@ -46,6 +49,14 @@ export async function createEntry(
     customer: entry.customer,
     durationMinutes: entry.durationMinutes,
   })
+  trackTimeEntryCreated(source, {
+    entryId: entry.id,
+    userId,
+    customer: entry.customer,
+    durationMinutes: entry.durationMinutes,
+    source,
+    date: entry.date,
+  })
   return entry
 }
 
@@ -72,6 +83,11 @@ export async function deleteEntry(entryId: string, userId: string): Promise<bool
   await db.entries.delete(entryId)
   trackEvent('entry_deleted', { entryId })
   return true
+}
+
+export async function getEntry(entryId: string, userId: string): Promise<TimeEntry | undefined> {
+  const entry = await db.entries.get(entryId)
+  return entry && entry.userId === userId ? entry : undefined
 }
 
 export async function getEntriesByUserAndDate(
@@ -147,6 +163,15 @@ export async function duplicateEntry(
     userId,
     customer: newEntry.customer,
     durationMinutes: newEntry.durationMinutes,
+    duplicatedFrom: entryId,
+  })
+  trackTimeEntryCreated('manual', {
+    entryId: newEntry.id,
+    userId,
+    customer: newEntry.customer,
+    durationMinutes: newEntry.durationMinutes,
+    source: 'manual',
+    date: newEntry.date,
     duplicatedFrom: entryId,
   })
   return newEntry

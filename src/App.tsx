@@ -7,6 +7,7 @@ import { TimeTotalsInvalidatorProvider } from '@/context/TimeTotalsInvalidatorCo
 import { initFlags } from '@/lib/flags'
 import { evaluateFlag } from '@/lib/flags'
 import { buildLaunchDarklyContext } from '@/lib/launchDarklyContext'
+import { setLaunchDarklyClient } from '@/lib/launchDarklyEvents'
 import { Header } from '@/components/Header'
 import { AppLayout } from '@/components/AppLayout'
 import { ChatAssistant } from '@/components/ChatAssistant/ChatAssistant'
@@ -23,6 +24,7 @@ function LDIdentify() {
   const { user } = useSession()
   useEffect(() => {
     if (!ldClient) return
+    setLaunchDarklyClient(ldClient)
     ldClient.identify(buildLaunchDarklyContext(user))
   }, [ldClient, user])
   return null
@@ -48,11 +50,12 @@ function AppContent() {
       <Header />
       <main>
         <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route element={<AppLayout />}>
-            <Route index element={<TimeEntries />} />
+            <Route path="dashboard" element={<TimeEntries />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="customers" element={<CustomersPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Routes>
       </main>

@@ -4,7 +4,7 @@ import { useTheme } from '@/context/ThemeContext'
 import './Sidebar.css'
 
 const NAV = [
-  { to: '/', label: 'Time' },
+  { to: '/dashboard', label: 'Dashboard' },
   { to: '/reports', label: 'Reports' },
   { to: '/customers', label: 'Customers' },
 ]
@@ -28,7 +28,7 @@ export function Sidebar({ todayHours = 0, weekHours = 0 }: SidebarProps) {
             key={to}
             to={to}
             className={
-              location.pathname === to || (to === '/' && location.pathname === '/')
+              location.pathname === to
                 ? 'app-sidebar-link active'
                 : 'app-sidebar-link'
             }

@@ -60,12 +60,6 @@ export function Timer({ customerNames, onCreateCustomer }: TimerProps) {
           </div>
         )}
       </div>
-      <input
-        type="text"
-        placeholder="Project (optional)"
-        value={timer.draftProject}
-        onChange={(e) => timer.setDraftProject(e.target.value)}
-      />
       <RichNotesEditor
         value={timer.draftNotes}
         onChange={timer.setDraftNotes}
@@ -79,7 +73,7 @@ export function Timer({ customerNames, onCreateCustomer }: TimerProps) {
         className="timer-start"
         disabled={!timer.draftCustomer.trim() || timer.draftCustomer === CREATE_NEW_VALUE}
       >
-        Start
+        Start Timer
       </button>
     </div>
   )

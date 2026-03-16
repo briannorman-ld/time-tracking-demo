@@ -12,6 +12,8 @@ export interface PersistedActiveTimer {
   startTime: number // epoch ms (when last started / when created)
   elapsedSec: number
   running: boolean
+  /** ID of the time entry created when this timer was started (for updating on pause). */
+  entryId?: string
 }
 
 export function loadActiveTimers(userId: string): PersistedActiveTimer[] {
