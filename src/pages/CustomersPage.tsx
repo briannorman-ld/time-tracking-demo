@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '@/context/SessionContext'
+import { trackCustomersPageView } from '@/lib/launchDarklyEvents'
 import { getCustomers } from '@/lib/customers'
 import type { Customer } from '@/types/customer'
 import { CustomerModal } from '@/components/CustomerModal'
@@ -15,6 +16,10 @@ export function CustomersPage() {
     if (!user) return
     getCustomers(user.id).then(setCustomers)
   }
+
+  useEffect(() => {
+    trackCustomersPageView()
+  }, [])
 
   useEffect(() => {
     loadCustomers()

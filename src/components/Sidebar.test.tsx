@@ -2,15 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { ThemeProvider } from '@/context/ThemeContext'
-import { useFlags } from 'launchdarkly-react-client-sdk'
+import { useShowThemeToggle } from '@/context/ShowThemeToggleContext'
 import { Sidebar } from './Sidebar'
 
-vi.mock('launchdarkly-react-client-sdk', () => ({
-  useFlags: vi.fn(),
+vi.mock('@/context/ShowThemeToggleContext', () => ({
+  useShowThemeToggle: vi.fn(),
 }))
 
 function renderSidebar(showThemeToggle = true) {
-  vi.mocked(useFlags).mockReturnValue({ showThemeToggle } as ReturnType<typeof useFlags>)
+  vi.mocked(useShowThemeToggle).mockReturnValue(showThemeToggle)
   return render(
     <MemoryRouter>
       <ThemeProvider>
@@ -22,7 +22,7 @@ function renderSidebar(showThemeToggle = true) {
 
 describe('Sidebar', () => {
   beforeEach(() => {
-    vi.mocked(useFlags).mockReturnValue({ showThemeToggle: true } as ReturnType<typeof useFlags>)
+    vi.mocked(useShowThemeToggle).mockReturnValue(true)
   })
 
   it('shows theme toggle when showThemeToggle flag is true', () => {

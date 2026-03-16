@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useFlags } from 'launchdarkly-react-client-sdk'
 import { useTheme } from '@/context/ThemeContext'
+import { useShowThemeToggle } from '@/context/ShowThemeToggleContext'
 import './Sidebar.css'
 
 const NAV = [
@@ -17,8 +17,7 @@ interface SidebarProps {
 export function Sidebar({ todayHours = 0, weekHours = 0 }: SidebarProps) {
   const location = useLocation()
   const { theme, toggleTheme } = useTheme()
-  const flags = useFlags()
-  const showThemeToggle = flags.showThemeToggle ?? true
+  const showThemeToggle = useShowThemeToggle()
 
   return (
     <aside className="app-sidebar">

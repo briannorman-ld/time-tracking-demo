@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from '@/context/SessionContext'
 import { useTimeTotalsInvalidatorVersion } from '@/context/TimeTotalsInvalidatorContext'
+import { trackReportsPageView } from '@/lib/launchDarklyEvents'
 import { getEntriesByUserInRange } from '@/lib/entries'
 import { getCustomers } from '@/lib/customers'
 import type { TimeEntry } from '@/types/entry'
@@ -37,6 +38,10 @@ export function ReportsPage() {
   const [customerFilter, setCustomerFilter] = useState<string>('')
   const [entries, setEntries] = useState<TimeEntry[]>([])
   const [customers, setCustomers] = useState<Customer[]>([])
+
+  useEffect(() => {
+    trackReportsPageView()
+  }, [])
 
   useEffect(() => {
     if (!user) return

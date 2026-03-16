@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useFlags } from 'launchdarkly-react-client-sdk'
 import { ThemeProvider, useTheme } from '@/context/ThemeContext'
+import { useShowThemeToggle } from '@/context/ShowThemeToggleContext'
 
-vi.mock('launchdarkly-react-client-sdk', () => ({
-  useFlags: vi.fn(),
+vi.mock('@/context/ShowThemeToggleContext', () => ({
+  useShowThemeToggle: vi.fn(),
 }))
 
 const THEME_KEY = 'time-tracker-demo-theme'
@@ -30,7 +30,7 @@ function TestConsumer() {
 
 describe('ThemeContext', () => {
   beforeEach(() => {
-    vi.mocked(useFlags).mockReturnValue({ showThemeToggle: true } as ReturnType<typeof useFlags>)
+    vi.mocked(useShowThemeToggle).mockReturnValue(true)
     localStorage.removeItem(THEME_KEY)
     document.documentElement.removeAttribute('data-theme')
   })
@@ -102,7 +102,7 @@ describe('ThemeContext', () => {
   })
 
   it('forces light mode when showThemeToggle flag is off', () => {
-    vi.mocked(useFlags).mockReturnValue({ showThemeToggle: false } as ReturnType<typeof useFlags>)
+    vi.mocked(useShowThemeToggle).mockReturnValue(false)
     localStorage.setItem(THEME_KEY, 'dark')
     render(
       <ThemeProvider>

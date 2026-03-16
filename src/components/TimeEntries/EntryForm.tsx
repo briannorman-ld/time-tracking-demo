@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSession } from '@/context/SessionContext'
+import { useTimer } from '@/context/TimerContext'
 import { createEntry } from '@/lib/entries'
 import type { RoundingMinutes } from '@/lib/preferences'
 import { roundToNearest } from '@/lib/preferences'
@@ -53,6 +54,7 @@ export function EntryForm({
   initialBillable = true,
 }: EntryFormProps) {
   const { user } = useSession()
+  const timer = useTimer()
   const [customer, setCustomer] = useState(initialCustomer)
   const [newCustomerName, setNewCustomerName] = useState('')
   const [creating, setCreating] = useState(false)
@@ -104,7 +106,7 @@ export function EntryForm({
         billable,
       })
     } else {
-      await createEntry(user.id, {
+      const entry = await createEntry(user.id, {
         customer: customer.trim(),
         notes: notesTrimmedForSubmit(notes),
         date,
@@ -112,6 +114,7 @@ export function EntryForm({
         source: 'manual',
         billable,
       })
+      timer.addPausedTimer(entry)
       setCustomer('')
       setNotes('')
       setDurationHours(0.5)

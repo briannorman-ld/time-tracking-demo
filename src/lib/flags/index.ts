@@ -10,6 +10,16 @@
 let initLogs: string[] = []
 let initDone = false
 
+type LDClientLike = { variation: (key: string, defaultValue: unknown) => unknown }
+let ldClient: LDClientLike | null = null
+
+/**
+ * Set the LaunchDarkly client so evaluateFlag uses it. Call from a component that has useLDClient().
+ */
+export function setFlagsLdClient(client: LDClientLike | null): void {
+  ldClient = client
+}
+
 export function initFlags(): { initialized: boolean; logs: string[] } {
   if (initDone) {
     return { initialized: true, logs: initLogs }
@@ -26,10 +36,13 @@ export function initFlags(): { initialized: boolean; logs: string[] } {
  * context: optional user/request context for targeting (e.g. userId, attributes).
  */
 export function evaluateFlag<T>(
-  _flagKey: string,
+  flagKey: string,
   defaultValue: T,
   _context?: { userId?: string; [key: string]: unknown }
 ): T {
+  if (ldClient) {
+    return ldClient.variation(flagKey, defaultValue) as T
+  }
   return defaultValue
 }
 

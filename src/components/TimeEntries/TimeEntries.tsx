@@ -89,7 +89,6 @@ export function TimeEntries() {
   const [showAddTime, setShowAddTime] = useState(false)
   const [entryModalId, setEntryModalId] = useState<string | null>(null)
   const [entryModalFetched, setEntryModalFetched] = useState<TimeEntry | null>(null)
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [expandedNotesIds, setExpandedNotesIds] = useState<Set<string>>(new Set())
 
   const toggleNotesExpanded = useCallback((id: string) => {
@@ -434,7 +433,7 @@ export function TimeEntries() {
                     <span className="entry-actions entry-actions-left" onClick={(ev) => ev.stopPropagation()}>
                       <button
                         type="button"
-                        className="entry-btn-resume-timer"
+                        className="entry-btn-resume"
                         onClick={(ev) => {
                           ev.stopPropagation()
                             const existingTimer = timer.activeTimers.find((t) => t.entryId === e.id)
@@ -457,9 +456,11 @@ export function TimeEntries() {
                               timer.startWith(e.customer, e.notes ?? '')
                             }
                       }}
-                    >
-                      Resume timer
-                    </button>
+                        title="Resume timer"
+                        aria-label="Resume timer"
+                      >
+                        ▶
+                      </button>
                     </span>
                   )}
                   <div
@@ -502,7 +503,6 @@ export function TimeEntries() {
                         </span>
                       )
                     })()}
-                    <span className="entry-source">{e.source}</span>
                   </div>
                   {e.notes && isNotesLong(e.notes) && (
                     <span className="entry-notes-toggle-wrap">
@@ -516,49 +516,6 @@ export function TimeEntries() {
                       </button>
                     </span>
                   )}
-                  <div className="entry-menu-wrap" onClick={(ev) => ev.stopPropagation()}>
-                    <button
-                      type="button"
-                      className="entry-menu-trigger"
-                      onClick={() => setOpenMenuId(openMenuId === e.id ? null : e.id)}
-                      aria-label="Edit or delete entry"
-                      aria-expanded={openMenuId === e.id}
-                    >
-                      <span aria-hidden>⋮</span>
-                    </button>
-                    {openMenuId === e.id && (
-                      <>
-                        <div
-                          className="entry-menu-backdrop"
-                          onClick={() => setOpenMenuId(null)}
-                          aria-hidden
-                        />
-                        <div className="entry-menu-dropdown" role="menu">
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              setOpenMenuId(null)
-                              setEntryModalId(e.id)
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className="danger"
-                            onClick={() => {
-                              setOpenMenuId(null)
-                              handleDelete(e.id)
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
                 </li>
               ))}
             </ul>

@@ -3,7 +3,11 @@ import { useSession } from '@/context/SessionContext'
 import { getAllUsers } from '@/lib/userStore'
 import './Header.css'
 
-export function Header() {
+interface HeaderProps {
+  onOpenLDAdmin?: () => void
+}
+
+export function Header({ onOpenLDAdmin }: HeaderProps) {
   const { user, setUser, logout } = useSession()
   const [switcherOpen, setSwitcherOpen] = useState(false)
 
@@ -14,6 +18,15 @@ export function Header() {
       <div className="app-header-inner">
         <span className="app-header-title">Time Tracker Demo</span>
         <div className="app-header-actions">
+          {onOpenLDAdmin && (
+            <button
+              type="button"
+              className="app-header-ld-admin"
+              onClick={onOpenLDAdmin}
+            >
+              LD Admin Tools
+            </button>
+          )}
             <div className="app-header-user">
               <button
                 type="button"
@@ -57,9 +70,9 @@ export function Header() {
                   </div>
                 </>
               )}
-            </div>
           </div>
         </div>
-      </header>
+      </div>
+    </header>
   )
 }

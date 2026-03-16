@@ -369,6 +369,31 @@
   filter: brightness(1.1);
 }
 
+/* Same icon-button style for resume (and pause) in all entry rows */
+.entry-actions-left .entry-btn-resume,
+.entry-actions-left .entry-btn-pause {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  cursor: pointer;
+}
+.entry-actions-left .entry-btn-resume {
+  background: var(--ld-primary);
+  color: #fff;
+  border-color: var(--ld-primary);
+}
+.entry-actions-left .entry-btn-resume:hover {
+  filter: brightness(1.1);
+}
+.entry-actions-left .entry-btn-pause {
+  background: var(--ld-surface);
+  color: var(--ld-text);
+}
+.entry-actions-left .entry-btn-pause:hover {
+  background: var(--ld-surface-hover);
+}
+
 .entry-menu-wrap {
   position: relative;
   margin-left: auto;

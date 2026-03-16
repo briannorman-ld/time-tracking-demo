@@ -18,6 +18,7 @@ The app uses a **mock** feature-flag system in `src/lib/flags/`. No external ven
 | `enableTimer` | boolean | true | Show/hide the timer UI. |
 | `enableReports` | boolean | true | Show/hide the minimal reports card. |
 | `assistantEnabled` | boolean | false | Show/hide the Chat Assistant. |
+| `show-ld-admin-tools` | boolean | false | Show/hide the LD Admin Tools button and side panel. |
 
 ## Replacing with a real provider
 

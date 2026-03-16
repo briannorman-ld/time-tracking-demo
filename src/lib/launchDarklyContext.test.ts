@@ -61,8 +61,9 @@ describe('launchDarklyContext', () => {
         key: 'anonymous',
         anonymous: true,
       })
-      expect((ctx as { device: { key: string; browser: string; operatingSystem: string; screenSize: string } }).device).toMatchObject({
+      expect((ctx as { device: { key: string; type: string; browser: string; operatingSystem: string; screenSize: string } }).device).toMatchObject({
         key: 'device-test-uuid-1234',
+        type: 'desktop',
         browser: 'Chrome',
         operatingSystem: 'Windows',
         screenSize: '1920x1080',
@@ -96,11 +97,19 @@ describe('launchDarklyContext', () => {
       expect((ctx as { device: { key: string } }).device.key).toBe(
         'device-test-uuid-1234'
       )
-      expect((ctx as { device: { browser: string; operatingSystem: string; screenSize: string } }).device).toMatchObject({
+      expect((ctx as { device: { type: string; browser: string; operatingSystem: string; screenSize: string } }).device).toMatchObject({
+        type: 'desktop',
         browser: 'Chrome',
         operatingSystem: 'Windows',
         screenSize: '1920x1080',
       })
+    })
+
+    it('includes device type (desktop, mobile, tablet, tv) in device context', () => {
+      const ctx = buildLaunchDarklyContext(null)
+      const device = (ctx as { device: { type: string } }).device
+      expect(['desktop', 'mobile', 'tablet', 'tv', 'unknown']).toContain(device.type)
+      expect(device.type).toBe('desktop')
     })
 
     it('uses device key from storage in context', () => {

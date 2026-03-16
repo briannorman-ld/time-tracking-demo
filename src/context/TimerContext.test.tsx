@@ -46,6 +46,11 @@ vi.mock('@/utils/timerStorage', () => ({
   clearLegacyTimerState,
 }))
 
+const mockInvalidateTotals = vi.fn()
+vi.mock('@/context/TimeTotalsInvalidatorContext', () => ({
+  useTimeTotalsInvalidate: () => mockInvalidateTotals,
+}))
+
 function TestConsumer() {
   const {
     draftCustomer,
@@ -56,6 +61,7 @@ function TestConsumer() {
     activeTimers,
     pause,
     resume,
+    addPausedTimer,
     updateTimer,
     getElapsedSec,
   } = useTimer()
@@ -73,6 +79,25 @@ function TestConsumer() {
       />
       <button type="button" onClick={start}>
         Start Timer
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          addPausedTimer({
+            id: 'manual-entry-1',
+            userId: 'test-user',
+            customer: 'Manual Co',
+            notes: 'Manual entry',
+            date: '2025-03-16',
+            durationMinutes: 30,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            source: 'manual',
+            schemaVersion: 2,
+          })
+        }
+      >
+        Add manual as paused
       </button>
       <div data-testid="active-count">{activeTimers.length}</div>
       {activeTimers.map((t) => (
@@ -210,5 +235,21 @@ describe('TimerContext', () => {
     await user.click(screen.getByRole('button', { name: 'Start Timer' }))
     await screen.findByText('running', {}, { timeout: 2000 })
     expect(saveActiveTimers).toHaveBeenCalled()
+  })
+
+  it('addPausedTimer adds entry as paused timer with duration as elapsed', async () => {
+    const user = userEvent.setup()
+    render(
+      <TimerProvider>
+        <TestConsumer />
+      </TimerProvider>
+    )
+    await user.click(screen.getByRole('button', { name: 'Add manual as paused' }))
+    expect(screen.getByTestId('active-count')).toHaveTextContent('1')
+    const timerId = screen.getByTestId('active-count').nextElementSibling?.getAttribute('data-testid')?.replace('timer-', '') ?? ''
+    expect(screen.getByTestId(`timer-customer-${timerId}`)).toHaveTextContent('Manual Co')
+    expect(screen.getByTestId(`timer-status-${timerId}`)).toHaveTextContent('paused')
+    expect(screen.getByTestId(`timer-elapsed-${timerId}`)).toHaveTextContent('1800') // 30 min = 1800 sec
+    expect(mockInvalidateTotals).toHaveBeenCalled()
   })
 })

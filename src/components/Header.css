@@ -49,6 +49,21 @@
   gap: 1rem;
 }
 
+.app-header-ld-admin {
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--ld-radius);
+  border: 1px solid var(--ld-border);
+  background: var(--ld-surface);
+  color: var(--ld-text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.app-header-ld-admin:hover {
+  background: var(--ld-surface-hover);
+  color: var(--ld-text);
+}
+
 .app-header-user {
   position: relative;
 }

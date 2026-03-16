@@ -24,6 +24,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { trackLaunchDarklyEvent, LD_EVENT_TIMER_STARTED } from '@/lib/launchDarklyEvents'
 import { createEntry } from '@/lib/entries'
 import { useTimeTotalsInvalidate } from '@/context/TimeTotalsInvalidatorContext'
+import type { TimeEntry } from '@/types/entry'
 
 export type TimerStatus = 'idle' | 'running' | 'paused'
 
@@ -55,6 +56,8 @@ interface TimerContextValue {
   pause: (id: string) => void
   /** Resume a paused timer. Does not create an entry. */
   resume: (id: string) => void
+  /** Add an existing entry as a paused timer (e.g. after creating a manual entry). */
+  addPausedTimer: (entry: TimeEntry) => void
   /** Update customer/project/notes/entryId for an active timer. */
   updateTimer: (id: string, updates: { customer?: string; project?: string; notes?: string; entryId?: string }) => void
   /** Elapsed seconds for a given timer (live for running, static for paused). */
@@ -103,7 +106,6 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     if (!user) {
       setActiveTimers([])
       setDraftCustomer('')
-      setDraftProject('')
       setDraftNotes('')
       loadedUserIdRef.current = null
       return
@@ -267,6 +269,25 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
+  const addPausedTimer = useCallback(
+    (entry: TimeEntry) => {
+      const elapsedSec = entry.durationMinutes * 60
+      const newTimer: ActiveTimer = {
+        id: uuidv4(),
+        entryId: entry.id,
+        customer: entry.customer,
+        project: entry.project ?? '',
+        notes: entry.notes,
+        startTime: Date.now() - elapsedSec * 1000,
+        elapsedSec,
+        status: 'paused',
+      }
+      setActiveTimers((prev) => [...prev, newTimer])
+      invalidateTotals?.()
+    },
+    [invalidateTotals]
+  )
+
   const updateTimer = useCallback((id: string, updates: { customer?: string; project?: string; notes?: string; entryId?: string }) => {
     setActiveTimers((prev) =>
       prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
@@ -295,6 +316,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     activeTimers,
     pause,
     resume,
+    addPausedTimer,
     updateTimer,
     getElapsedSec,
   }

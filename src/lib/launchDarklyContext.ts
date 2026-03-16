@@ -31,6 +31,7 @@ export function buildLaunchDarklyContext(user: DemoUser | null): LDContext {
   const deviceKey = getDeviceKey()
   const deviceContext = {
     key: deviceKey,
+    type: getDeviceType(),
     browser: getBrowserName(),
     operatingSystem: getOperatingSystem(),
     screenSize: getScreenSize(),
@@ -57,6 +58,18 @@ export function buildLaunchDarklyContext(user: DemoUser | null): LDContext {
     user: userContext,
     device: deviceContext,
   }
+}
+
+function getDeviceType(): string {
+  if (typeof navigator === 'undefined' || typeof window === 'undefined') return 'unknown'
+  const ua = navigator.userAgent.toLowerCase()
+  const width = window.screen?.width ?? 0
+  if (ua.includes('tv') || ua.includes('smarttv') || ua.includes('googletv') || ua.includes('appletv') || ua.includes('crkey')) return 'tv'
+  if (ua.includes('tablet') || ua.includes('ipad') || (ua.includes('android') && !ua.includes('mobile')) || (ua.includes('silk') && !ua.includes('mobile'))) return 'tablet'
+  if (ua.includes('mobile') || ua.includes('iphone') || ua.includes('ipod') || ua.includes('android')) return 'mobile'
+  if (width > 0 && width < 768) return 'mobile'
+  if (width >= 768 && width < 1024) return 'tablet'
+  return 'desktop'
 }
 
 function getBrowserName(): string {

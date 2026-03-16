@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { useFlags } from 'launchdarkly-react-client-sdk'
+import { useShowThemeToggle } from '@/context/ShowThemeToggleContext'
 
 const THEME_KEY = 'time-tracker-demo-theme'
 
@@ -44,8 +44,7 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const flags = useFlags()
-  const showThemeToggle = flags.showThemeToggle ?? true
+  const showThemeToggle = useShowThemeToggle()
   const [theme, setThemeState] = useState<Theme>(() => {
     const t = loadTheme()
     applyTheme(t)
