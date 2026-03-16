@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSession } from '@/context/SessionContext'
+import { useTimeTotalsInvalidatorVersion } from '@/context/TimeTotalsInvalidatorContext'
 import { getEntriesByUserInRange } from '@/lib/entries'
 import { getCustomers } from '@/lib/customers'
 import type { TimeEntry } from '@/types/entry'
@@ -29,6 +30,7 @@ function getWeekRange(date: Date): { start: string; end: string } {
 
 export function ReportsPage() {
   const { user } = useSession()
+  const invalidatorVersion = useTimeTotalsInvalidatorVersion()
   const thisWeek = getWeekRange(new Date())
   const [startDate, setStartDate] = useState(thisWeek.start)
   const [endDate, setEndDate] = useState(thisWeek.end)
@@ -50,7 +52,7 @@ export function ReportsPage() {
         setEntries(list)
       }
     })
-  }, [user, startDate, endDate, customerFilter])
+  }, [user, startDate, endDate, customerFilter, invalidatorVersion])
 
   const totalMinutes = entries.reduce((s, e) => s + e.durationMinutes, 0)
   const totalBillable = entries.filter((e) => e.billable !== false).reduce((s, e) => s + e.durationMinutes, 0)
@@ -155,7 +157,6 @@ export function ReportsPage() {
                 {dayEntries.map((e) => (
                   <li key={e.id}>
                     <span>{e.customer}</span>
-                    {e.project && <span>{e.project}</span>}
                     <span>{formatDuration(e.durationMinutes)}</span>
                     {e.notes && <span className="reports-entry-notes"><NotesContent html={e.notes} /></span>}
                   </li>
@@ -195,7 +196,6 @@ export function ReportsPage() {
                       {dayEntries.map((e) => (
                         <li key={e.id}>
                           <span>{e.customer}</span>
-                          {e.project && <span>{e.project}</span>}
                           <span>{formatDuration(e.durationMinutes)}</span>
                           {e.notes && <span className="reports-entry-notes"><NotesContent html={e.notes} /></span>}
                         </li>

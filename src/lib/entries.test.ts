@@ -2,8 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createEntry, updateEntry, deleteEntry } from '@/lib/entries'
 import type { TimeEntry } from '@/types/entry'
 import { SCHEMA_VERSION } from '@/types/entry'
+import {
+  trackTimeEntryCreated,
+} from '@/lib/launchDarklyEvents'
 
 vi.mock('@/utils/trackEvent', () => ({ trackEvent: vi.fn() }))
+vi.mock('@/lib/launchDarklyEvents', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/launchDarklyEvents')>()
+  return {
+    ...actual,
+    trackTimeEntryCreated: vi.fn(),
+  }
+})
 
 const addedEntries: TimeEntry[] = []
 const storedEntries: Map<string, TimeEntry> = new Map()
@@ -46,6 +56,7 @@ describe('entries', () => {
   beforeEach(() => {
     addedEntries.length = 0
     storedEntries.clear()
+    vi.mocked(trackTimeEntryCreated).mockClear()
   })
 
   describe('createEntry', () => {
@@ -68,6 +79,48 @@ describe('entries', () => {
       expect(entry.id).toBeDefined()
       expect(entry.schemaVersion).toBe(SCHEMA_VERSION)
       expect(entry.billable).toBe(true)
+    })
+
+    it('sends timer and any-created events when source is timer', async () => {
+      const entry = await createEntry('u1', {
+        customer: 'Acme',
+        notes: 'Work',
+        date: '2026-02-01',
+        durationMinutes: 45,
+        source: 'timer',
+      })
+      expect(trackTimeEntryCreated).toHaveBeenCalledWith(
+        'timer',
+        expect.objectContaining({
+          entryId: entry.id,
+          userId: 'u1',
+          customer: 'Acme',
+          durationMinutes: 45,
+          source: 'timer',
+          date: '2026-02-01',
+        })
+      )
+    })
+
+    it('sends manual and any-created events when source is manual', async () => {
+      const entry = await createEntry('u1', {
+        customer: 'Beta',
+        notes: 'Manual',
+        date: '2026-02-02',
+        durationMinutes: 60,
+        source: 'manual',
+      })
+      expect(trackTimeEntryCreated).toHaveBeenCalledWith(
+        'manual',
+        expect.objectContaining({
+          entryId: entry.id,
+          userId: 'u1',
+          customer: 'Beta',
+          durationMinutes: 60,
+          source: 'manual',
+          date: '2026-02-02',
+        })
+      )
     })
   })
 

@@ -28,7 +28,7 @@ export function CustomersPage() {
       <p className="customers-page-intro">
         All customers for your account. Use this list when logging time.
       </p>
-      <Link to="/" className="customers-page-back">
+      <Link to="/dashboard" className="customers-page-back">
         ← Back to Time
       </Link>
       <ul className="customers-list">

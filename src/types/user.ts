@@ -7,12 +7,15 @@ export interface DemoUser {
   username: string
   displayName: string
   email: string
+  phone?: string
   appRole: 'admin' | 'user' | 'viewer'
-  planTier: 'free' | 'pro' | 'enterprise'
+  planTier: 'free' | 'pro' | 'premium' | 'enterprise'
   betaTester: boolean
   teams: string[]
   timezone: string
-  locationLabel: string
+  city: string
+  country?: string
+  age?: number
 }
 
 /** Context passed to integration.identifyUser() — mirrors what analytics/feature-flag providers expect. */
@@ -36,7 +39,7 @@ export function userToContext(user: DemoUser): UserContext {
       betaTester: user.betaTester,
       teams: user.teams,
       timezone: user.timezone,
-      locationLabel: user.locationLabel,
+      city: user.city,
     },
   }
 }

@@ -3,6 +3,7 @@ import { useSession } from '@/context/SessionContext'
 import {
   getEntriesByUserAndDate,
   getEntriesByUserInRange,
+  getEntry,
   createEntry,
   updateEntry,
   deleteEntry,
@@ -14,15 +15,32 @@ import {
 } from '@/lib/preferences'
 import type { TimeEntry } from '@/types/entry'
 import { evaluateFlag } from '@/lib/flags'
-import { useTimeTotalsInvalidate } from '@/context/TimeTotalsInvalidatorContext'
+import { useTimeTotalsInvalidate, useTimeTotalsInvalidatorVersion } from '@/context/TimeTotalsInvalidatorContext'
 import { useTimer } from '@/context/TimerContext'
 import { trackEvent } from '@/utils/trackEvent'
-import { formatDuration, minutesToDecimal, decimalToMinutes } from '@/utils/duration'
+import { formatDuration } from '@/utils/duration'
 import { formatDisplayDate } from '@/utils/dateFormat'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faAngleDown, faAngleUp } from '@fortawesome/free-solid-svg-icons'
 import { NotesContent } from '@/components/NotesContent'
 import { Timer } from './Timer'
 import { EntryForm } from './EntryForm'
+import { EntryEditModal } from './EntryEditModal'
 import './TimeEntries.css'
+
+const NOTES_PREVIEW_MAX_LEN = 60
+
+function stripHtmlForPreview(html: string): string {
+  if (typeof document === 'undefined') return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  const div = document.createElement('div')
+  div.innerHTML = html
+  return (div.textContent ?? '').replace(/\s+/g, ' ').trim()
+}
+
+/** True only when notes would be truncated with an ellipsis in the collapsed preview. */
+function isNotesLong(html: string): boolean {
+  return stripHtmlForPreview(html || '').length > NOTES_PREVIEW_MAX_LEN
+}
 
 function formatDateForInput(d: Date): string {
   const y = d.getFullYear()
@@ -68,18 +86,27 @@ export function TimeEntries() {
   const [focusDate, setFocusDate] = useState(() => formatDateForInput(new Date()))
   const [entries, setEntries] = useState<TimeEntry[]>([])
   const [customers, setCustomers] = useState<string[]>([])
-  const [editingId, setEditingId] = useState<string | null>(null)
   const [showAddTime, setShowAddTime] = useState(false)
-  const [inlineEditEntryId, setInlineEditEntryId] = useState<string | null>(null)
-  const [inlineEditHours, setInlineEditHours] = useState('')
+  const [entryModalId, setEntryModalId] = useState<string | null>(null)
+  const [entryModalFetched, setEntryModalFetched] = useState<TimeEntry | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [expandedNotesIds, setExpandedNotesIds] = useState<Set<string>>(new Set())
+
+  const toggleNotesExpanded = useCallback((id: string) => {
+    setExpandedNotesIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
 
   const navLayoutVariant = evaluateFlag('navLayoutVariant', 'tabs', {
     userId: user?.id,
   }) as 'tabs' | 'sidebar'
   const enableTimer = evaluateFlag('enableTimer', true, { userId: user?.id })
-  const enableReports = evaluateFlag('enableReports', true, { userId: user?.id })
   const invalidateTotals = useTimeTotalsInvalidate()
+  const invalidatorVersion = useTimeTotalsInvalidatorVersion()
   const timer = useTimer()
 
   const loadEntries = useCallback(async () => {
@@ -93,7 +120,7 @@ export function TimeEntries() {
       setEntries(list)
     }
     invalidateTotals?.()
-  }, [user, view, focusDate, invalidateTotals])
+  }, [user, view, focusDate, invalidateTotals, invalidatorVersion])
 
   useEffect(() => {
     loadEntries()
@@ -103,6 +130,14 @@ export function TimeEntries() {
     if (!user) return
     getCustomerNames(user.id).then(setCustomers)
   }, [user])
+
+  useEffect(() => {
+    if (!entryModalId || !user) {
+      setEntryModalFetched(null)
+      return
+    }
+    getEntry(entryModalId, user.id).then((entry) => setEntryModalFetched(entry ?? null))
+  }, [entryModalId, user?.id])
 
   const handleViewChange = (v: 'day' | 'week') => {
     setView(v)
@@ -131,10 +166,11 @@ export function TimeEntries() {
       if (!t) return
       const elapsedSec = timer.getElapsedSec(timerId)
       const rounded = roundToNearest(elapsedSec / 60, getRoundingPreference())
-      if (rounded > 0) {
+      if (t.entryId) {
+        updateEntry(t.entryId, user.id, { durationMinutes: rounded }).then(handleCreated)
+      } else if (rounded > 0) {
         createEntry(user.id, {
           customer: t.customer,
-          project: t.project || undefined,
           notes: t.notes,
           date: focusDate,
           durationMinutes: rounded,
@@ -148,33 +184,20 @@ export function TimeEntries() {
 
   const handleUpdate = async (
     entryId: string,
-    updates: Partial<Pick<TimeEntry, 'customer' | 'project' | 'notes' | 'date' | 'durationMinutes' | 'billable' | 'hourlyRate'>>
+    updates: Partial<Pick<TimeEntry, 'customer' | 'notes' | 'date' | 'durationMinutes' | 'billable' | 'hourlyRate'>>
   ) => {
     if (!user) return
     const updated = await updateEntry(entryId, user.id, updates)
     if (updated) {
-      setEditingId(null)
-      loadEntries()
+      await loadEntries()
     }
-  }
-
-  const handleInlineDurationSave = (entryId: string) => {
-    const hours = parseFloat(inlineEditHours)
-    if (!user || Number.isNaN(hours) || hours < 0) {
-      setInlineEditEntryId(null)
-      return
-    }
-    const minutes = decimalToMinutes(hours)
-    updateEntry(entryId, user.id, { durationMinutes: minutes }).then(() => {
-      loadEntries()
-      setInlineEditEntryId(null)
-    })
   }
 
   const handleDelete = async (entryId: string) => {
     if (!user) return
     await deleteEntry(entryId, user.id)
-    setEditingId(null)
+    setEntryModalId(null)
+    setEntryModalFetched(null)
     loadEntries()
   }
 
@@ -240,13 +263,6 @@ export function TimeEntries() {
             Week
           </button>
         </div>
-        <button
-          type="button"
-          className="time-entries-add-btn"
-          onClick={() => setShowAddTime(true)}
-        >
-          Add time
-        </button>
       </div>
 
       <div className="time-entries-main">
@@ -275,12 +291,12 @@ export function TimeEntries() {
               className="time-entries-add-inline"
               onClick={() => setShowAddTime(true)}
             >
-              + Add time
+              + Add manual entry
             </button>
           )}
           <section className="time-entries-list">
             <h3>
-              {view === 'day' ? formatDisplayDate(focusDate) : `Week of ${formatDisplayDate(focusDate)}`} — Entries
+              {view === 'day' ? formatDisplayDate(focusDate) : `Week of ${formatDisplayDate(focusDate)}`}
             </h3>
             {view === 'week' && (
               <div className="time-entries-week-grid-wrapper">
@@ -330,160 +346,243 @@ export function TimeEntries() {
                   const m = Math.floor((sec % 3600) / 60)
                   const s = sec % 60
                   const durationStr = `${pad(h)}:${pad(m)}:${pad(s)}`
+                  const entry = t.entryId
+                    ? (entries.find((e) => e.id === t.entryId) ?? (entryModalId === t.entryId ? entryModalFetched : null))
+                    : null
+                  const showEntryDuration = t.status === 'paused' && entry
                   return (
-                    <li key={t.id} className="entry entry-active-timer">
-                      <span className="entry-badge">Timer</span>
-                      <span className="entry-customer">{t.customer}</span>
-                      {t.project && <span className="entry-project">{t.project}</span>}
-                      <span className="entry-duration entry-timer-live">{durationStr}</span>
-                      {t.notes && (
-                        <span className="entry-notes">
-                          <NotesContent html={t.notes} />
-                        </span>
-                      )}
-                      <span className="entry-actions">
-                        {t.status === 'running' && (
-                          <button type="button" className="entry-btn-pause" onClick={() => handlePauseTimer(t.id)}>
-                            Pause
+                    <li
+                      key={t.id}
+                      className="entry entry-active-timer entry-row-clickable"
+                      onClick={() => t.entryId && setEntryModalId(t.entryId)}
+                      role={t.entryId ? 'button' : undefined}
+                      tabIndex={t.entryId ? 0 : undefined}
+                      onKeyDown={
+                        t.entryId
+                          ? (ev) => {
+                              if (ev.key === 'Enter' || ev.key === ' ') {
+                                ev.preventDefault()
+                                setEntryModalId(t.entryId!)
+                              }
+                            }
+                          : undefined
+                      }
+                    >
+                      <span className="entry-actions entry-actions-left" onClick={(ev) => ev.stopPropagation()}>
+                        {t.status === 'running' ? (
+                          <button type="button" className="entry-btn-pause" onClick={() => handlePauseTimer(t.id)} aria-label="Pause">
+                            ⏸
                           </button>
-                        )}
-                        {t.status === 'paused' && (
-                          <button type="button" className="entry-btn-resume" onClick={() => timer.resume(t.id)}>
-                            Resume
+                        ) : (
+                          <button type="button" className="entry-btn-resume" onClick={() => timer.resume(t.id)} title="Resume timer (does not create an entry)" aria-label="Resume">
+                            ▶
                           </button>
                         )}
                       </span>
+                      <span className="entry-customer">{t.customer}</span>
+                      <span className={`entry-duration ${showEntryDuration ? '' : 'entry-timer-live'}`}>
+                        {showEntryDuration ? formatDuration(entry.durationMinutes) : durationStr}
+                      </span>
+                      {(entry?.notes ?? t.notes) && (() => {
+                        const notesHtml = entry?.notes ?? t.notes ?? ''
+                        const notesId = t.entryId ?? t.id
+                        const long = isNotesLong(notesHtml)
+                        const expanded = expandedNotesIds.has(notesId)
+                        if (!long) {
+                          return (
+                            <span className="entry-notes">
+                              <NotesContent html={notesHtml} />
+                            </span>
+                          )
+                        }
+                        return (
+                          <>
+                            <span className={expanded ? 'entry-notes entry-notes-expanded' : 'entry-notes entry-notes-collapsed'}>
+                              {expanded ? (
+                                <NotesContent html={notesHtml} />
+                              ) : (
+                                <span className="entry-notes-preview">
+{stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
+                            {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
+                                </span>
+                              )}
+                            </span>
+                            <span className="entry-notes-toggle-wrap">
+                              <button
+                                type="button"
+                                className="entry-notes-toggle"
+                                onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(notesId) }}
+                                aria-label={expanded ? 'Collapse notes' : 'Expand notes'}
+                              >
+                                <FontAwesomeIcon icon={expanded ? faAngleUp : faAngleDown} />
+                              </button>
+                            </span>
+                          </>
+                        )
+                      })()}
                     </li>
                   )
                 })}
               </ul>
             )}
             <ul>
-              {entries.map((e) => (
-                <li key={e.id}>
-                  {editingId === e.id ? (
-                    <EntryForm
-                      focusDate={e.date}
-                      customerNames={customers}
-                      onCreateCustomer={handleCreateCustomer}
-                      initialCustomer={e.customer}
-                      initialProject={e.project}
-                      initialNotes={e.notes}
-                      initialDuration={e.durationMinutes}
-                      initialBillable={e.billable}
-                      entryId={e.id}
-                      onSave={(updates) => handleUpdate(e.id, updates)}
-                      onCancel={() => setEditingId(null)}
-                      rounding={getRoundingPreference()}
-                    />
-                  ) : (
-                    <>
-                      <span className="entry-customer">{e.customer}</span>
-                      {e.project && <span className="entry-project">{e.project}</span>}
-                      {inlineEditEntryId === e.id ? (
-                        <span className="entry-duration-inline">
-                          <input
-                            type="number"
-                            min={0}
-                            step={0.25}
-                            value={inlineEditHours}
-                            onChange={(ev) => setInlineEditHours(ev.target.value)}
-                            onBlur={() => handleInlineDurationSave(e.id)}
-                            onKeyDown={(ev) => {
-                              if (ev.key === 'Enter') handleInlineDurationSave(e.id)
-                              if (ev.key === 'Escape') setInlineEditEntryId(null)
-                            }}
-                            autoFocus
-                            className="entry-duration-input"
-                          />
-                          hrs
-                        </span>
-                      ) : (
-                        <span
-                          className="entry-duration entry-duration-clickable"
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => {
-                            setInlineEditEntryId(e.id)
-                            setInlineEditHours(minutesToDecimal(e.durationMinutes).toString())
-                          }}
-                          onKeyDown={(ev) => {
-                            if (ev.key === 'Enter' || ev.key === ' ') {
-                              ev.preventDefault()
-                              setInlineEditEntryId(e.id)
-                              setInlineEditHours(minutesToDecimal(e.durationMinutes).toString())
+              {entries
+                .filter((e) => !timer.activeTimers.some((t) => t.entryId === e.id))
+                .map((e) => (
+                <li key={e.id} className="entry-row-clickable">
+                  {enableTimer && (
+                    <span className="entry-actions entry-actions-left" onClick={(ev) => ev.stopPropagation()}>
+                      <button
+                        type="button"
+                        className="entry-btn-resume-timer"
+                        onClick={(ev) => {
+                          ev.stopPropagation()
+                            const existingTimer = timer.activeTimers.find((t) => t.entryId === e.id)
+                            if (existingTimer) {
+                              timer.resume(existingTimer.id)
+                              return
                             }
-                          }}
-                        >
-                          {formatDuration(e.durationMinutes)}
-                        </span>
-                      )}
-                      {e.notes && (
-                        <span className="entry-notes">
-                          <NotesContent html={e.notes} />
-                        </span>
-                      )}
-                      <span className="entry-source">{e.source}</span>
-                      <div className="entry-menu-wrap">
-                        <button
-                          type="button"
-                          className="entry-menu-trigger"
-                          onClick={() => setOpenMenuId(openMenuId === e.id ? null : e.id)}
-                          aria-label="Edit or delete entry"
-                          aria-expanded={openMenuId === e.id}
-                        >
-                          <span aria-hidden>⋮</span>
-                        </button>
-                        {openMenuId === e.id && (
-                          <>
-                            <div
-                              className="entry-menu-backdrop"
-                              onClick={() => setOpenMenuId(null)}
-                              aria-hidden
-                            />
-                            <div className="entry-menu-dropdown" role="menu">
-                              <button
-                                type="button"
-                                role="menuitem"
-                                onClick={() => {
-                                  setOpenMenuId(null)
-                                  setEditingId(e.id)
-                                }}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                role="menuitem"
-                                className="danger"
-                                onClick={() => {
-                                  setOpenMenuId(null)
-                                  handleDelete(e.id)
-                                }}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </>
+                            // Paused timer without entryId (e.g. legacy): resume it and link to this entry instead of creating new
+                            const pausedMatch = timer.activeTimers.find(
+                              (t) =>
+                                t.status === 'paused' &&
+                                !t.entryId &&
+                                t.customer === e.customer &&
+                                (t.notes ?? '') === (e.notes ?? '')
+                            )
+                            if (pausedMatch) {
+                              timer.updateTimer(pausedMatch.id, { entryId: e.id })
+                              timer.resume(pausedMatch.id)
+                            } else {
+                              timer.startWith(e.customer, e.notes ?? '')
+                            }
+                      }}
+                    >
+                      Resume timer
+                    </button>
+                    </span>
                   )}
+                  <div
+                    className="entry-row-content"
+                    onClick={() => setEntryModalId(e.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(ev) => {
+                      if (ev.key === 'Enter' || ev.key === ' ') {
+                        ev.preventDefault()
+                        setEntryModalId(e.id)
+                      }
+                    }}
+                  >
+                    <span className="entry-customer">{e.customer}</span>
+                    <span className="entry-duration">
+                      {formatDuration(e.durationMinutes)}
+                    </span>
+                    {e.notes && (() => {
+                      const notesHtml = e.notes
+                      const long = isNotesLong(notesHtml)
+                      const expanded = expandedNotesIds.has(e.id)
+                      if (!long) {
+                        return (
+                          <span className="entry-notes">
+                            <NotesContent html={notesHtml} />
+                          </span>
+                        )
+                      }
+                      return (
+                        <span className={expanded ? 'entry-notes entry-notes-expanded' : 'entry-notes entry-notes-collapsed'}>
+                          {expanded ? (
+                            <NotesContent html={notesHtml} />
+                          ) : (
+                            <span className="entry-notes-preview">
+                              {stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
+                              {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
+                            </span>
+                          )}
+                        </span>
+                      )
+                    })()}
+                    <span className="entry-source">{e.source}</span>
+                  </div>
+                  {e.notes && isNotesLong(e.notes) && (
+                    <span className="entry-notes-toggle-wrap">
+                      <button
+                        type="button"
+                        className="entry-notes-toggle"
+                        onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(e.id) }}
+                        aria-label={expandedNotesIds.has(e.id) ? 'Collapse notes' : 'Expand notes'}
+                      >
+                        <FontAwesomeIcon icon={expandedNotesIds.has(e.id) ? faAngleUp : faAngleDown} />
+                      </button>
+                    </span>
+                  )}
+                  <div className="entry-menu-wrap" onClick={(ev) => ev.stopPropagation()}>
+                    <button
+                      type="button"
+                      className="entry-menu-trigger"
+                      onClick={() => setOpenMenuId(openMenuId === e.id ? null : e.id)}
+                      aria-label="Edit or delete entry"
+                      aria-expanded={openMenuId === e.id}
+                    >
+                      <span aria-hidden>⋮</span>
+                    </button>
+                    {openMenuId === e.id && (
+                      <>
+                        <div
+                          className="entry-menu-backdrop"
+                          onClick={() => setOpenMenuId(null)}
+                          aria-hidden
+                        />
+                        <div className="entry-menu-dropdown" role="menu">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setOpenMenuId(null)
+                              setEntryModalId(e.id)
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="danger"
+                            onClick={() => {
+                              setOpenMenuId(null)
+                              handleDelete(e.id)
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
           </section>
         </div>
-        {enableReports && (
-          <aside className="time-entries-reports">
-            <div className="reports-card">
-              <h4>Reports</h4>
-              <p>Total this {view}: {formatDuration(entries.reduce((s, e) => s + e.durationMinutes, 0))}</p>
-              <p className="reports-note">Minimal placeholder. Add real reports later.</p>
-            </div>
-          </aside>
-        )}
       </div>
+      {entryModalId && (() => {
+        const entry = entries.find((x) => x.id === entryModalId) ?? entryModalFetched
+        return entry ? (
+          <EntryEditModal
+            entry={entry}
+            focusDate={focusDate}
+            customerNames={customers}
+            onCreateCustomer={handleCreateCustomer}
+            onSave={(updates) => handleUpdate(entry.id, updates)}
+            onClose={() => {
+              setEntryModalId(null)
+              setEntryModalFetched(null)
+            }}
+            onDelete={() => handleDelete(entry.id)}
+            rounding={getRoundingPreference()}
+          />
+        ) : null
+      })()}
     </div>
   )
 }

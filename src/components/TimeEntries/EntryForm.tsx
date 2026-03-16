@@ -21,7 +21,6 @@ interface EntryFormProps {
   onCreated?: () => void
   onSave?: (updates: {
     customer?: string
-    project?: string
     notes?: string
     date?: string
     durationMinutes?: number
@@ -33,7 +32,6 @@ interface EntryFormProps {
   rounding?: RoundingMinutes
   entryId?: string
   initialCustomer?: string
-  initialProject?: string
   initialNotes?: string
   initialDuration?: number
   initialBillable?: boolean
@@ -50,7 +48,6 @@ export function EntryForm({
   rounding = 0,
   entryId,
   initialCustomer = '',
-  initialProject = '',
   initialNotes = '',
   initialDuration = 0,
   initialBillable = true,
@@ -59,7 +56,6 @@ export function EntryForm({
   const [customer, setCustomer] = useState(initialCustomer)
   const [newCustomerName, setNewCustomerName] = useState('')
   const [creating, setCreating] = useState(false)
-  const [project, setProject] = useState(initialProject)
   const [notes, setNotes] = useState(initialNotes)
   const [date, setDate] = useState(focusDate)
   const [durationHours, setDurationHours] = useState(
@@ -102,7 +98,6 @@ export function EntryForm({
     if (isEdit && onSave) {
       onSave({
         customer: customer.trim(),
-        project: project.trim() || undefined,
         notes: notesTrimmedForSubmit(notes),
         date,
         durationMinutes: rounded,
@@ -111,7 +106,6 @@ export function EntryForm({
     } else {
       await createEntry(user.id, {
         customer: customer.trim(),
-        project: project.trim() || undefined,
         notes: notesTrimmedForSubmit(notes),
         date,
         durationMinutes: rounded,
@@ -119,7 +113,6 @@ export function EntryForm({
         billable,
       })
       setCustomer('')
-      setProject('')
       setNotes('')
       setDurationHours(0.5)
       setDate(focusDate)
@@ -174,9 +167,9 @@ export function EntryForm({
         <span className="entry-form-suffix">hrs</span>
         <input type="hidden" name="date" value={date} />
         <button type="submit">{isEdit ? 'Save' : 'Add'}</button>
-        {isEdit && onCancel && (
+        {onCancel && (
           <button type="button" onClick={onCancel}>
-            Cancel
+            {isEdit ? 'Cancel' : 'Discard'}
           </button>
         )}
       </form>
@@ -223,15 +216,6 @@ export function EntryForm({
         />
       </label>
       <label>
-        Project (optional)
-        <input
-          type="text"
-          placeholder="Project name"
-          value={project}
-          onChange={(e) => setProject(e.target.value)}
-        />
-      </label>
-      <label>
         Duration (hours)
         <input
           type="number"
@@ -262,9 +246,9 @@ export function EntryForm({
       </label>
       <div className="entry-form-actions">
         <button type="submit">{isEdit ? 'Save' : 'Create entry'}</button>
-        {isEdit && onCancel && (
+        {onCancel && (
           <button type="button" onClick={onCancel}>
-            Cancel
+            {isEdit ? 'Cancel' : 'Discard'}
           </button>
         )}
       </div>

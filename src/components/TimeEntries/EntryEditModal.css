@@ -1,0 +1,119 @@
+.entry-edit-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.entry-edit-modal {
+  background: var(--ld-bg-subtle);
+  border: 1px solid var(--ld-border);
+  border-radius: 12px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.entry-edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--ld-border);
+  flex-shrink: 0;
+}
+
+.entry-edit-modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--ld-text);
+}
+
+.entry-edit-modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.entry-edit-modal-delete {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: var(--ld-text-muted);
+  cursor: pointer;
+}
+
+.entry-edit-modal-delete:hover {
+  color: var(--ld-error, #c00);
+}
+
+.entry-edit-modal-delete-confirm-label {
+  font-size: 0.9rem;
+  color: var(--ld-text-muted);
+}
+
+.entry-edit-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ld-text-muted);
+}
+
+.entry-edit-modal-close:hover {
+  color: var(--ld-text);
+}
+
+.entry-edit-modal-body {
+  padding: 1.25rem;
+  overflow: auto;
+}
+
+.entry-edit-modal-body .entry-form {
+  margin-bottom: 0;
+}
+
+.entry-edit-modal-delete-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.entry-edit-modal-delete-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.entry-edit-modal-delete-cancel {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius-md);
+  background: transparent;
+  color: var(--ld-text);
+  cursor: pointer;
+}
+
+.entry-edit-modal-delete-cancel:hover {
+  background: var(--ld-surface-hover);
+}
+
+.entry-edit-modal-delete-confirm {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--ld-radius-md);
+  background: var(--ld-error, #c00);
+  color: #fff;
+  cursor: pointer;
+}
+
+.entry-edit-modal-delete-confirm:hover {
+  filter: brightness(1.1);
+}
