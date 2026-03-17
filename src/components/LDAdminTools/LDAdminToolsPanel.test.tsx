@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { LDAdminToolsPanel } from './LDAdminToolsPanel'
 
 const mockUser = {
@@ -41,7 +42,7 @@ describe('LDAdminToolsPanel', () => {
   })
 
   it('calls onClose when close button is clicked', async () => {
-    const { user } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
     render(<LDAdminToolsPanel onClose={onClose} />)
     await user.click(screen.getByRole('button', { name: /close/i }))
     expect(onClose).toHaveBeenCalledTimes(1)
