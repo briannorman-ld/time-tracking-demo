@@ -12,6 +12,6 @@ This folder provides a **stub** flag API for the time-tracker-demo. **No feature
 1. Install the LaunchDarkly SDK (e.g. `launchdarkly-react-client-sdk`). See `docs/LAUNCHDARKLY.md`.
 2. In `initFlags()`, call the SDK's init with your client-side ID and context when available.
 3. Replace the `evaluateFlag` implementation to call the SDK's variation method with the same `flagKey` and `defaultValue` contract. Pass `context` when initializing or when calling identify.
-4. Create flags in the LaunchDarkly UI for `show-theme-toggle` and `show-ld-admin-tools` (the only two flags this app uses) and make them available to client-side SDKs. The app reads them via the LD React SDK (`useFlags()`) and `ldClient.variation()` in `ShowThemeToggleContext`, not via `evaluateFlag`.
+4. Create flags in the LaunchDarkly UI for `show-theme-toggle`, `show-ld-admin-tools`, and `tile-layout`, and make them available to client-side SDKs. The app reads them via the LD React SDK (`useFlags()`) and `ldClient.variation()` in `ShowThemeToggleContext`, not via `evaluateFlag`.
 
 No other app code should need to change if you keep the same `evaluateFlag(flagKey, defaultValue, context?)` API.

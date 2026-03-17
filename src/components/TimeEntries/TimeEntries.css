@@ -102,6 +102,187 @@
   margin-top: 1.5rem;
 }
 
+/* Tile layout: 3 → 2 → 1 columns as width shrinks */
+.time-entries-tiles {
+  margin-top: 1.5rem;
+}
+
+.time-entries-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .time-entries-tiles-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .time-entries-tiles-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.entry-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius-lg);
+  background: var(--ld-bg-subtle);
+  cursor: pointer;
+  min-height: 4rem;
+  box-sizing: border-box;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.entry-tile:hover {
+  background: var(--ld-surface-hover);
+  border-color: var(--ld-border-strong);
+}
+
+.entry-tile:focus {
+  outline: 2px solid var(--ld-primary);
+  outline-offset: 2px;
+}
+
+.entry-tile:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.entry-tile-active {
+  border-color: var(--ld-primary);
+  background: var(--ld-primary-muted);
+}
+
+.entry-tile-active:hover {
+  background: var(--ld-primary-muted);
+  border-color: var(--ld-primary);
+}
+
+.entry-tile-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.entry-tile-actions .entry-btn-resume,
+.entry-tile-actions .entry-btn-pause {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  cursor: pointer;
+}
+
+.entry-tile-actions .entry-btn-resume {
+  background: var(--ld-primary);
+  color: #fff;
+  border-color: var(--ld-primary);
+}
+
+.entry-tile-actions .entry-btn-resume:hover {
+  filter: brightness(1.1);
+}
+
+.entry-tile-actions .entry-btn-pause {
+  background: var(--ld-surface);
+  color: var(--ld-text);
+}
+
+.entry-tile-actions .entry-btn-pause:hover {
+  background: var(--ld-surface-hover);
+}
+
+.entry-tile-actions .entry-actions-placeholder {
+  display: inline-block;
+  min-width: 2.25rem;
+  min-height: 1.75rem;
+}
+
+/* Inline row: [button] customer · duration */
+.entry-tile-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  min-width: 0;
+}
+
+.entry-tile-row .entry-tile-customer {
+  font-weight: 600;
+  color: var(--ld-text);
+  flex-shrink: 0;
+}
+
+.entry-tile-row .entry-tile-duration {
+  font-variant-numeric: tabular-nums;
+  color: var(--ld-text-muted);
+  font-size: 0.95rem;
+  margin-left: auto;
+}
+
+.entry-tile-row .entry-tile-duration.entry-timer-live {
+  color: var(--ld-primary);
+  font-weight: 500;
+}
+
+.entry-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.entry-tile-customer {
+  font-weight: 600;
+  color: var(--ld-text);
+}
+
+.entry-tile-duration {
+  font-variant-numeric: tabular-nums;
+  color: var(--ld-text-muted);
+  font-size: 0.95rem;
+}
+
+.entry-tile-body .entry-tile-duration.entry-timer-live {
+  color: var(--ld-primary);
+  font-weight: 500;
+}
+
+.entry-tile-notes {
+  font-size: 0.9rem;
+  color: var(--ld-text-muted);
+  line-height: 1.35;
+  margin-top: 0.25rem;
+}
+
+.entry-tile-notes.entry-notes-collapsed .entry-notes-preview {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entry-tile .entry-notes-toggle {
+  margin-top: 0.25rem;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  color: var(--ld-text-muted);
+  cursor: pointer;
+}
+
+.entry-tile .entry-notes-toggle:hover {
+  background: var(--ld-surface-hover);
+  color: var(--ld-text);
+}
+
 .time-entries-list h3 {
   margin: 0 0 0.75rem 0;
   font-size: 1rem;
@@ -392,6 +573,13 @@
 }
 .entry-actions-left .entry-btn-pause:hover {
   background: var(--ld-surface-hover);
+}
+
+/* Reserve space when resume is hidden so entry rows stay aligned */
+.entry-actions-left .entry-actions-placeholder {
+  display: inline-block;
+  min-width: 2.25rem;
+  min-height: 1.75rem;
 }
 
 .entry-menu-wrap {

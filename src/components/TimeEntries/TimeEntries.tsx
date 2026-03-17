@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useFlags } from 'launchdarkly-react-client-sdk'
 import { useSession } from '@/context/SessionContext'
 import {
   getEntriesByUserAndDate,
@@ -26,6 +27,13 @@ import { Timer } from './Timer'
 import { EntryForm } from './EntryForm'
 import { EntryEditModal } from './EntryEditModal'
 import './TimeEntries.css'
+
+function readTileLayoutFlag(flags: Record<string, unknown>): boolean {
+  const v = flags.tileLayout ?? flags['tile-layout']
+  if (typeof v === 'boolean') return v
+  if (typeof v === 'string') return v.toLowerCase() === 'true'
+  return false
+}
 
 const NOTES_PREVIEW_MAX_LEN = 60
 
@@ -102,6 +110,8 @@ export function TimeEntries() {
   const invalidateTotals = useTimeTotalsInvalidate()
   const invalidatorVersion = useTimeTotalsInvalidatorVersion()
   const timer = useTimer()
+  const flags = useFlags()
+  const tileLayout = readTileLayoutFlag(flags)
 
   const loadEntries = useCallback(async () => {
     if (!user) return
@@ -323,187 +333,352 @@ export function TimeEntries() {
                 </table>
               </div>
             )}
-            {timer.activeTimers.length > 0 && (
-              <ul className="time-entries-active-timers">
-                {timer.activeTimers.map((t) => {
-                  const sec = timer.getElapsedSec(t.id)
-                  const pad = (n: number) => String(n).padStart(2, '0')
-                  const h = Math.floor(sec / 3600)
-                  const m = Math.floor((sec % 3600) / 60)
-                  const s = sec % 60
-                  const durationStr = `${pad(h)}:${pad(m)}:${pad(s)}`
-                  const entry = t.entryId
-                    ? (entries.find((e) => e.id === t.entryId) ?? (entryModalId === t.entryId ? entryModalFetched : null))
-                    : null
-                  const showEntryDuration = t.status === 'paused' && entry
-                  return (
-                    <li
-                      key={t.id}
-                      className="entry entry-active-timer entry-row-clickable"
-                      onClick={() => t.entryId && setEntryModalId(t.entryId)}
-                      role={t.entryId ? 'button' : undefined}
-                      tabIndex={t.entryId ? 0 : undefined}
-                      onKeyDown={
-                        t.entryId
-                          ? (ev) => {
+            {tileLayout ? (
+              <div className="time-entries-tiles">
+                <div className="time-entries-tiles-grid">
+                  {timer.activeTimers.map((t) => {
+                    const sec = timer.getElapsedSec(t.id)
+                    const pad = (n: number) => String(n).padStart(2, '0')
+                    const h = Math.floor(sec / 3600)
+                    const m = Math.floor((sec % 3600) / 60)
+                    const s = sec % 60
+                    const durationStr = `${pad(h)}:${pad(m)}:${pad(s)}`
+                    const entry = t.entryId
+                      ? (entries.find((e) => e.id === t.entryId) ?? (entryModalId === t.entryId ? entryModalFetched : null))
+                      : null
+                    const showEntryDuration = t.status === 'paused' && entry
+                    const notesHtml = entry?.notes ?? t.notes ?? ''
+                    const notesId = t.entryId ?? t.id
+                    const long = isNotesLong(notesHtml)
+                    const expanded = expandedNotesIds.has(notesId)
+                    return (
+                      <div
+                        key={t.id}
+                        className="entry-tile entry-tile-active"
+                        onClick={() => t.entryId && setEntryModalId(t.entryId)}
+                        role={t.entryId ? 'button' : undefined}
+                        tabIndex={t.entryId ? 0 : undefined}
+                        onKeyDown={
+                          t.entryId
+                            ? (ev) => {
+                                if (ev.key === 'Enter' || ev.key === ' ') {
+                                  ev.preventDefault()
+                                  setEntryModalId(t.entryId!)
+                                }
+                              }
+                            : undefined
+                        }
+                      >
+                        <div className="entry-tile-row">
+                          <div className="entry-tile-actions" onClick={(ev) => ev.stopPropagation()}>
+                            {t.status === 'running' ? (
+                              <button type="button" className="entry-btn-pause" onClick={() => handlePauseTimer(t.id)} aria-label="Pause">⏸</button>
+                            ) : (
+                              <button type="button" className="entry-btn-resume" onClick={() => timer.resume(t.id)} title="Resume timer" aria-label="Resume">▶</button>
+                            )}
+                          </div>
+                          <span className="entry-tile-customer">{t.customer}</span>
+                          <span className={`entry-tile-duration ${showEntryDuration ? '' : 'entry-timer-live'}`}>
+                            {showEntryDuration ? formatDuration(entry!.durationMinutes) : durationStr}
+                          </span>
+                        </div>
+                        <div className="entry-tile-body">
+                          {notesHtml && (
+                            <>
+                              {!long ? (
+                                <span className="entry-tile-notes"><NotesContent html={notesHtml} /></span>
+                              ) : (
+                                <>
+                                  <span className={expanded ? 'entry-tile-notes entry-notes-expanded' : 'entry-tile-notes entry-notes-collapsed'}>
+                                    {expanded ? <NotesContent html={notesHtml} /> : (
+                                      <span className="entry-notes-preview">
+                                        {stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
+                                        {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
+                                      </span>
+                                    )}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="entry-notes-toggle"
+                                    onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(notesId) }}
+                                    aria-label={expanded ? 'Collapse notes' : 'Expand notes'}
+                                  >
+                                    <FontAwesomeIcon icon={expanded ? faAngleUp : faAngleDown} />
+                                  </button>
+                                </>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {entries
+                    .filter((e) => !timer.activeTimers.some((t) => t.entryId === e.id))
+                    .map((e) => {
+                      const pausedMatch = timer.activeTimers.find(
+                        (t) =>
+                          t.status === 'paused' &&
+                          !t.entryId &&
+                          t.customer === e.customer &&
+                          (t.notes ?? '') === (e.notes ?? '')
+                      )
+                      const canResume = !!pausedMatch
+                      const notesHtml = e.notes ?? ''
+                      const long = isNotesLong(notesHtml)
+                      const expanded = expandedNotesIds.has(e.id)
+                      return (
+                        <div
+                          key={e.id}
+                          className="entry-tile"
+                          onClick={() => setEntryModalId(e.id)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(ev) => {
+                            if (ev.key === 'Enter' || ev.key === ' ') {
+                              ev.preventDefault()
+                              setEntryModalId(e.id)
+                            }
+                          }}
+                        >
+                          <div className="entry-tile-row">
+                            <div className="entry-tile-actions" onClick={(ev) => ev.stopPropagation()}>
+                              {canResume ? (
+                                <button
+                                  type="button"
+                                  className="entry-btn-resume"
+                                  onClick={(ev) => {
+                                    ev.stopPropagation()
+                                    if (pausedMatch) {
+                                      timer.updateTimer(pausedMatch.id, { entryId: e.id })
+                                      timer.resume(pausedMatch.id)
+                                    }
+                                  }}
+                                  title="Resume timer"
+                                  aria-label="Resume timer"
+                                >
+                                  ▶
+                                </button>
+                              ) : (
+                                <span className="entry-actions-placeholder" aria-hidden />
+                              )}
+                            </div>
+                            <span className="entry-tile-customer">{e.customer}</span>
+                            <span className="entry-tile-duration">{formatDuration(e.durationMinutes)}</span>
+                          </div>
+                          <div className="entry-tile-body">
+                            {notesHtml && (
+                              <>
+                                {!long ? (
+                                  <span className="entry-tile-notes"><NotesContent html={notesHtml} /></span>
+                                ) : (
+                                  <>
+                                    <span className={expanded ? 'entry-tile-notes entry-notes-expanded' : 'entry-tile-notes entry-notes-collapsed'}>
+                                      {expanded ? <NotesContent html={notesHtml} /> : (
+                                        <span className="entry-notes-preview">
+                                          {stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
+                                          {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
+                                        </span>
+                                      )}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className="entry-notes-toggle"
+                                      onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(e.id) }}
+                                      aria-label={expanded ? 'Collapse notes' : 'Expand notes'}
+                                    >
+                                      <FontAwesomeIcon icon={expanded ? faAngleUp : faAngleDown} />
+                                    </button>
+                                  </>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                </div>
+              </div>
+            ) : (
+              <>
+                {timer.activeTimers.length > 0 && (
+                  <ul className="time-entries-active-timers">
+                    {timer.activeTimers.map((t) => {
+                      const sec = timer.getElapsedSec(t.id)
+                      const pad = (n: number) => String(n).padStart(2, '0')
+                      const h = Math.floor(sec / 3600)
+                      const m = Math.floor((sec % 3600) / 60)
+                      const s = sec % 60
+                      const durationStr = `${pad(h)}:${pad(m)}:${pad(s)}`
+                      const entry = t.entryId
+                        ? (entries.find((e) => e.id === t.entryId) ?? (entryModalId === t.entryId ? entryModalFetched : null))
+                        : null
+                      const showEntryDuration = t.status === 'paused' && entry
+                      return (
+                        <li
+                          key={t.id}
+                          className="entry entry-active-timer entry-row-clickable"
+                          onClick={() => t.entryId && setEntryModalId(t.entryId)}
+                          role={t.entryId ? 'button' : undefined}
+                          tabIndex={t.entryId ? 0 : undefined}
+                          onKeyDown={
+                            t.entryId
+                              ? (ev) => {
+                                  if (ev.key === 'Enter' || ev.key === ' ') {
+                                    ev.preventDefault()
+                                    setEntryModalId(t.entryId!)
+                                  }
+                                }
+                              : undefined
+                          }
+                        >
+                          <span className="entry-actions entry-actions-left" onClick={(ev) => ev.stopPropagation()}>
+                            {t.status === 'running' ? (
+                              <button type="button" className="entry-btn-pause" onClick={() => handlePauseTimer(t.id)} aria-label="Pause">⏸</button>
+                            ) : (
+                              <button type="button" className="entry-btn-resume" onClick={() => timer.resume(t.id)} title="Resume timer (does not create an entry)" aria-label="Resume">▶</button>
+                            )}
+                          </span>
+                          <span className="entry-customer">{t.customer}</span>
+                          <span className={`entry-duration ${showEntryDuration ? '' : 'entry-timer-live'}`}>
+                            {showEntryDuration ? formatDuration(entry!.durationMinutes) : durationStr}
+                          </span>
+                          {(entry?.notes ?? t.notes) && (() => {
+                            const notesHtml = entry?.notes ?? t.notes ?? ''
+                            const notesId = t.entryId ?? t.id
+                            const long = isNotesLong(notesHtml)
+                            const expanded = expandedNotesIds.has(notesId)
+                            if (!long) {
+                              return (
+                                <span className="entry-notes">
+                                  <NotesContent html={notesHtml} />
+                                </span>
+                              )
+                            }
+                            return (
+                              <>
+                                <span className={expanded ? 'entry-notes entry-notes-expanded' : 'entry-notes entry-notes-collapsed'}>
+                                  {expanded ? (
+                                    <NotesContent html={notesHtml} />
+                                  ) : (
+                                    <span className="entry-notes-preview">
+                                      {stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
+                                      {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="entry-notes-toggle-wrap">
+                                  <button
+                                    type="button"
+                                    className="entry-notes-toggle"
+                                    onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(notesId) }}
+                                    aria-label={expanded ? 'Collapse notes' : 'Expand notes'}
+                                  >
+                                    <FontAwesomeIcon icon={expanded ? faAngleUp : faAngleDown} />
+                                  </button>
+                                </span>
+                              </>
+                            )
+                          })()}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+                <ul>
+                  {entries
+                    .filter((e) => !timer.activeTimers.some((t) => t.entryId === e.id))
+                    .map((e) => {
+                      const pausedMatch = timer.activeTimers.find(
+                        (t) =>
+                          t.status === 'paused' &&
+                          !t.entryId &&
+                          t.customer === e.customer &&
+                          (t.notes ?? '') === (e.notes ?? '')
+                      )
+                      const canResume = !!pausedMatch
+                      return (
+                        <li key={e.id} className="entry-row-clickable">
+                          <span className="entry-actions entry-actions-left" onClick={(ev) => ev.stopPropagation()}>
+                            {canResume ? (
+                              <button
+                                type="button"
+                                className="entry-btn-resume"
+                                onClick={(ev) => {
+                                  ev.stopPropagation()
+                                  if (pausedMatch) {
+                                    timer.updateTimer(pausedMatch.id, { entryId: e.id })
+                                    timer.resume(pausedMatch.id)
+                                  }
+                                }}
+                                title="Resume timer (does not create an entry)"
+                                aria-label="Resume timer"
+                              >
+                                ▶
+                              </button>
+                            ) : (
+                              <span className="entry-actions-placeholder" aria-hidden />
+                            )}
+                          </span>
+                          <div
+                            className="entry-row-content"
+                            onClick={() => setEntryModalId(e.id)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(ev) => {
                               if (ev.key === 'Enter' || ev.key === ' ') {
                                 ev.preventDefault()
-                                setEntryModalId(t.entryId!)
+                                setEntryModalId(e.id)
                               }
-                            }
-                          : undefined
-                      }
-                    >
-                      <span className="entry-actions entry-actions-left" onClick={(ev) => ev.stopPropagation()}>
-                        {t.status === 'running' ? (
-                          <button type="button" className="entry-btn-pause" onClick={() => handlePauseTimer(t.id)} aria-label="Pause">
-                            ⏸
-                          </button>
-                        ) : (
-                          <button type="button" className="entry-btn-resume" onClick={() => timer.resume(t.id)} title="Resume timer (does not create an entry)" aria-label="Resume">
-                            ▶
-                          </button>
-                        )}
-                      </span>
-                      <span className="entry-customer">{t.customer}</span>
-                      <span className={`entry-duration ${showEntryDuration ? '' : 'entry-timer-live'}`}>
-                        {showEntryDuration ? formatDuration(entry.durationMinutes) : durationStr}
-                      </span>
-                      {(entry?.notes ?? t.notes) && (() => {
-                        const notesHtml = entry?.notes ?? t.notes ?? ''
-                        const notesId = t.entryId ?? t.id
-                        const long = isNotesLong(notesHtml)
-                        const expanded = expandedNotesIds.has(notesId)
-                        if (!long) {
-                          return (
-                            <span className="entry-notes">
-                              <NotesContent html={notesHtml} />
+                            }}
+                          >
+                            <span className="entry-customer">{e.customer}</span>
+                            <span className="entry-duration">
+                              {formatDuration(e.durationMinutes)}
                             </span>
-                          )
-                        }
-                        return (
-                          <>
-                            <span className={expanded ? 'entry-notes entry-notes-expanded' : 'entry-notes entry-notes-collapsed'}>
-                              {expanded ? (
-                                <NotesContent html={notesHtml} />
-                              ) : (
-                                <span className="entry-notes-preview">
-{stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
-                            {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
+                            {e.notes && (() => {
+                              const notesHtml = e.notes
+                              const long = isNotesLong(notesHtml)
+                              const expanded = expandedNotesIds.has(e.id)
+                              if (!long) {
+                                return (
+                                  <span className="entry-notes">
+                                    <NotesContent html={notesHtml} />
+                                  </span>
+                                )
+                              }
+                              return (
+                                <span className={expanded ? 'entry-notes entry-notes-expanded' : 'entry-notes entry-notes-collapsed'}>
+                                  {expanded ? (
+                                    <NotesContent html={notesHtml} />
+                                  ) : (
+                                    <span className="entry-notes-preview">
+                                      {stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
+                                      {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
+                                    </span>
+                                  )}
                                 </span>
-                              )}
-                            </span>
+                              )
+                            })()}
+                          </div>
+                          {e.notes && isNotesLong(e.notes) && (
                             <span className="entry-notes-toggle-wrap">
                               <button
                                 type="button"
                                 className="entry-notes-toggle"
-                                onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(notesId) }}
-                                aria-label={expanded ? 'Collapse notes' : 'Expand notes'}
+                                onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(e.id) }}
+                                aria-label={expandedNotesIds.has(e.id) ? 'Collapse notes' : 'Expand notes'}
                               >
-                                <FontAwesomeIcon icon={expanded ? faAngleUp : faAngleDown} />
+                                <FontAwesomeIcon icon={expandedNotesIds.has(e.id) ? faAngleUp : faAngleDown} />
                               </button>
                             </span>
-                          </>
-                        )
-                      })()}
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-            <ul>
-              {entries
-                .filter((e) => !timer.activeTimers.some((t) => t.entryId === e.id))
-                .map((e) => (
-                <li key={e.id} className="entry-row-clickable">
-                  <span className="entry-actions entry-actions-left" onClick={(ev) => ev.stopPropagation()}>
-                    <button
-                      type="button"
-                      className="entry-btn-resume"
-                      onClick={(ev) => {
-                        ev.stopPropagation()
-                        const existingTimer = timer.activeTimers.find((t) => t.entryId === e.id)
-                        if (existingTimer) {
-                          timer.resume(existingTimer.id)
-                          return
-                        }
-                        // Paused timer without entryId (e.g. legacy): resume it and link to this entry instead of creating new
-                        const pausedMatch = timer.activeTimers.find(
-                          (t) =>
-                            t.status === 'paused' &&
-                            !t.entryId &&
-                            t.customer === e.customer &&
-                            (t.notes ?? '') === (e.notes ?? '')
-                        )
-                        if (pausedMatch) {
-                          timer.updateTimer(pausedMatch.id, { entryId: e.id })
-                          timer.resume(pausedMatch.id)
-                        } else {
-                          timer.startWith(e.customer, e.notes ?? '')
-                        }
-                      }}
-                      title="Resume timer"
-                      aria-label="Resume timer"
-                    >
-                      ▶
-                    </button>
-                  </span>
-                  <div
-                    className="entry-row-content"
-                    onClick={() => setEntryModalId(e.id)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(ev) => {
-                      if (ev.key === 'Enter' || ev.key === ' ') {
-                        ev.preventDefault()
-                        setEntryModalId(e.id)
-                      }
-                    }}
-                  >
-                    <span className="entry-customer">{e.customer}</span>
-                    <span className="entry-duration">
-                      {formatDuration(e.durationMinutes)}
-                    </span>
-                    {e.notes && (() => {
-                      const notesHtml = e.notes
-                      const long = isNotesLong(notesHtml)
-                      const expanded = expandedNotesIds.has(e.id)
-                      if (!long) {
-                        return (
-                          <span className="entry-notes">
-                            <NotesContent html={notesHtml} />
-                          </span>
-                        )
-                      }
-                      return (
-                        <span className={expanded ? 'entry-notes entry-notes-expanded' : 'entry-notes entry-notes-collapsed'}>
-                          {expanded ? (
-                            <NotesContent html={notesHtml} />
-                          ) : (
-                            <span className="entry-notes-preview">
-                              {stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
-                              {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
-                            </span>
                           )}
-                        </span>
+                        </li>
                       )
-                    })()}
-                  </div>
-                  {e.notes && isNotesLong(e.notes) && (
-                    <span className="entry-notes-toggle-wrap">
-                      <button
-                        type="button"
-                        className="entry-notes-toggle"
-                        onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(e.id) }}
-                        aria-label={expandedNotesIds.has(e.id) ? 'Collapse notes' : 'Expand notes'}
-                      >
-                        <FontAwesomeIcon icon={expandedNotesIds.has(e.id) ? faAngleUp : faAngleDown} />
-                      </button>
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
+                    })}
+                </ul>
+              </>
+            )}
           </section>
         </div>
       </div>
