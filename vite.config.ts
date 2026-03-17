@@ -16,6 +16,8 @@ if (typeof globalThis.crypto !== 'object' || typeof globalThis.crypto.getRandomV
 }
 
 export default defineConfig({
+  // For GitHub Pages project site: set BASE_PATH=/repo-name/ in the deploy workflow
+  base: process.env.BASE_PATH || '/',
   plugins: [react()],
   resolve: {
     alias: {
