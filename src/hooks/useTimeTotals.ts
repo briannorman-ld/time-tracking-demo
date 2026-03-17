@@ -2,8 +2,12 @@ import { useState, useEffect } from 'react'
 import { getEntriesByUserAndDate, getEntriesByUserInRange } from '@/lib/entries'
 import { useTimeTotalsInvalidatorVersion } from '@/context/TimeTotalsInvalidatorContext'
 
-function formatDate(d: Date): string {
-  return d.toISOString().slice(0, 10)
+/** YYYY-MM-DD in local time (matches date picker and entry list). */
+function formatDateLocal(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 function getWeekRange(date: Date): { start: string; end: string } {
@@ -14,7 +18,7 @@ function getWeekRange(date: Date): { start: string; end: string } {
   start.setDate(diff)
   const end = new Date(start)
   end.setDate(start.getDate() + 6)
-  return { start: formatDate(start), end: formatDate(end) }
+  return { start: formatDateLocal(start), end: formatDateLocal(end) }
 }
 
 export function useTimeTotals(userId: string | undefined) {
@@ -28,7 +32,7 @@ export function useTimeTotals(userId: string | undefined) {
       setWeekMinutes(0)
       return
     }
-    const today = formatDate(new Date())
+    const today = formatDateLocal(new Date())
     const { start, end } = getWeekRange(new Date())
     Promise.all([
       getEntriesByUserAndDate(userId, today),
