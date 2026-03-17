@@ -73,7 +73,12 @@ export function RichNotesEditor({
 
   return (
     <div className={`rich-notes-editor ${className}`}>
-      <div className="rich-notes-toolbar">
+      <div
+        className="rich-notes-toolbar"
+        onMouseDown={(e) => e.preventDefault()}
+        role="toolbar"
+        aria-label="Text formatting"
+      >
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -193,7 +198,13 @@ export function RichNotesEditor({
           ↷
         </button>
       </div>
-      <EditorContent editor={editor} />
+      <div
+        className="rich-notes-editor-content"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <EditorContent editor={editor} />
+      </div>
     </div>
   )
 }

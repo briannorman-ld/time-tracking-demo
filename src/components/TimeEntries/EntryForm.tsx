@@ -229,8 +229,8 @@ export function EntryForm({
           onChange={(e) => setDurationHours(Number(e.target.value))}
         />
       </label>
-      <label>
-        Notes
+      <div className="entry-form-notes-wrap">
+        <span className="entry-form-notes-label">Notes</span>
         <RichNotesEditor
           value={notes}
           onChange={setNotes}
@@ -238,7 +238,7 @@ export function EntryForm({
           className="entry-form-notes-editor"
           minHeight="6rem"
         />
-      </label>
+      </div>
       <label className="entry-form-checkbox">
         <input
           type="checkbox"

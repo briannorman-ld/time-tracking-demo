@@ -76,6 +76,18 @@
   color: var(--ld-text);
 }
 
+.entry-form-notes-wrap {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--ld-text);
+}
+
+.entry-form-notes-wrap .entry-form-notes-label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
 .entry-form-notes-editor {
   max-width: 100%;
 }
