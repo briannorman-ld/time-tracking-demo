@@ -54,8 +54,11 @@ describe('seedCustomers', () => {
       createdAt: new Date().toISOString(),
     })
     const { db } = await import('@/lib/db')
+    ;(db.customers.bulkPut as ReturnType<typeof vi.fn>).mockClear()
     await ensureCustomersSeeded('user2')
-    const call = (db.customers.bulkPut as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    const calls = (db.customers.bulkPut as ReturnType<typeof vi.fn>).mock.calls
+    expect(calls).toHaveLength(1)
+    const call = calls[0][0]
     expect(call).toHaveLength(9)
     expect(call.every((c: { name: string }) => c.name !== 'Acme Corp')).toBe(true)
   })

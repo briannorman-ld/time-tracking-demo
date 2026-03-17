@@ -38,6 +38,11 @@ export function getLaunchDarklyClient(): LDClientLike | null {
 const GLOBAL_DEDUPE_MS = 1500
 const lastSentAtByKey: Record<string, number> = {}
 
+/** Clears dedupe state. Only for tests so multiple tests can send the same event key. */
+export function clearDedupeStateForTesting(): void {
+  Object.keys(lastSentAtByKey).forEach((k) => delete lastSentAtByKey[k])
+}
+
 function dedupeKey(eventKey: string, data?: Record<string, unknown>, metricValue?: number): string {
   const payload = JSON.stringify({ d: data ?? null, m: metricValue })
   return `${eventKey}\n${payload}`

@@ -7,6 +7,7 @@ import {
   trackTimeEntryCreated,
   trackReportsPageView,
   trackCustomersPageView,
+  clearDedupeStateForTesting,
   LD_EVENT_TTD_TIME_ENTRY_CREATED,
   LD_EVENT_TTD_REPORTS_PAGE_VIEW,
   LD_EVENT_TTD_CUSTOMERS_PAGE_VIEW,
@@ -76,7 +77,10 @@ describe('launchDarklyEvents', () => {
   describe('trackTimeEntryCreated', () => {
     const data = { entryId: 'e1', userId: 'u1', durationMinutes: 30 }
 
-    beforeEach(() => setLaunchDarklyClient({ track: mockTrack }))
+    beforeEach(() => {
+      setLaunchDarklyClient({ track: mockTrack })
+      clearDedupeStateForTesting()
+    })
 
     it('sends ttd-time-entry-created and ttd-time-entry-created-timer when source is timer', () => {
       trackTimeEntryCreated('timer', data)

@@ -26,7 +26,6 @@ interface EntryEditModalProps {
 
 export function EntryEditModal({
   entry,
-  focusDate,
   customerNames,
   onCreateCustomer,
   onSave,

@@ -15,38 +15,40 @@ vi.mock('@/lib/launchDarklyEvents', async (importOriginal) => {
   }
 })
 
-const addedEntries: TimeEntry[] = []
-const storedEntries: Map<string, TimeEntry> = new Map()
-
-const mockEntries = {
-  add: vi.fn(async (entry: TimeEntry) => {
-    addedEntries.push(entry)
-    storedEntries.set(entry.id, entry)
-  }),
-  put: vi.fn(async (entry: TimeEntry) => {
-    storedEntries.set(entry.id, entry)
-  }),
-  get: vi.fn(async (id: string) => storedEntries.get(id)),
-  delete: vi.fn(async (id: string) => {
-    storedEntries.delete(id)
-  }),
-  where: vi.fn((_key: string) => ({
-    equals: (val: string | [string, string]) => ({
-      sortBy: (_sortKey: string) => {
-        const list = Array.from(storedEntries.values()).filter((e) =>
-          Array.isArray(val) ? e.userId === val[0] && e.date === val[1] : e.userId === val
-        )
-        return Promise.resolve(list.sort((a, b) => a.createdAt.localeCompare(b.createdAt)))
-      },
-      toArray: () => {
-        const list = Array.from(storedEntries.values()).filter((e) =>
-          Array.isArray(val) ? e.userId === val[0] && e.date === val[1] : e.userId === val
-        )
-        return Promise.resolve(list)
-      },
+const { mockEntries, addedEntries, storedEntries } = vi.hoisted(() => {
+  const addedEntries: TimeEntry[] = []
+  const storedEntries = new Map<string, TimeEntry>()
+  const mockEntries = {
+    add: vi.fn(async (entry: TimeEntry) => {
+      addedEntries.push(entry)
+      storedEntries.set(entry.id, entry)
     }),
-  })),
-}
+    put: vi.fn(async (entry: TimeEntry) => {
+      storedEntries.set(entry.id, entry)
+    }),
+    get: vi.fn(async (id: string) => storedEntries.get(id)),
+    delete: vi.fn(async (id: string) => {
+      storedEntries.delete(id)
+    }),
+    where: vi.fn((_key: string) => ({
+      equals: (val: string | [string, string]) => ({
+        sortBy: (_sortKey: string) => {
+          const list = Array.from(storedEntries.values()).filter((e) =>
+            Array.isArray(val) ? e.userId === val[0] && e.date === val[1] : e.userId === val
+          )
+          return Promise.resolve(list.sort((a, b) => a.createdAt.localeCompare(b.createdAt)))
+        },
+        toArray: () => {
+          const list = Array.from(storedEntries.values()).filter((e) =>
+            Array.isArray(val) ? e.userId === val[0] && e.date === val[1] : e.userId === val
+          )
+          return Promise.resolve(list)
+        },
+      }),
+    })),
+  }
+  return { mockEntries, addedEntries, storedEntries }
+})
 
 vi.mock('@/lib/db', () => ({
   db: { entries: mockEntries },

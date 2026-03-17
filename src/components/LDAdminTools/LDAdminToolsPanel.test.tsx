@@ -38,7 +38,9 @@ describe('LDAdminToolsPanel', () => {
   it('shows event log section', () => {
     render(<LDAdminToolsPanel onClose={onClose} />)
     expect(screen.getByText('Event log')).toBeInTheDocument()
-    expect(screen.getByText(/recent.*track.*events/i)).toBeInTheDocument()
+    const eventLogSection = screen.getByRole('heading', { name: 'Event log' }).closest('section')
+    expect(eventLogSection).toBeInTheDocument()
+    expect(eventLogSection?.textContent).toMatch(/recent.*track.*events/i)
   })
 
   it('calls onClose when close button is clicked', async () => {

@@ -54,7 +54,7 @@ describe('launchDarklyContext', () => {
   describe('buildLaunchDarklyContext', () => {
     it('returns multi-kind context with anonymous user and device when user is null', () => {
       const ctx = buildLaunchDarklyContext(null)
-      expect(ctx.kind).toBe('multi')
+      expect((ctx as { kind: string }).kind).toBe('multi')
       expect(ctx).toHaveProperty('user')
       expect(ctx).toHaveProperty('device')
       expect((ctx as { user: { key: string; anonymous: boolean } }).user).toEqual({
@@ -85,7 +85,7 @@ describe('launchDarklyContext', () => {
         country: 'US',
       }
       const ctx = buildLaunchDarklyContext(user)
-      expect(ctx.kind).toBe('multi')
+      expect((ctx as { kind: string }).kind).toBe('multi')
       expect((ctx as { user: Record<string, unknown> }).user).toEqual({
         key: 'user-1',
         id: 'user-1',

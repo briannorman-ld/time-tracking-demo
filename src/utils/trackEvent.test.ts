@@ -1,5 +1,20 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { trackEvent, getRecentEvents } from '@/utils/trackEvent'
+
+vi.mock('@/lib/db', () => ({
+  db: {
+    eventLog: {
+      orderBy: () => ({
+        reverse: () => ({
+          limit: () => ({
+            toArray: () => Promise.resolve([]),
+          }),
+        }),
+      }),
+      bulkAdd: vi.fn(() => Promise.resolve()),
+    },
+  },
+}))
 
 describe('trackEvent', () => {
   it('calls trackEvent without throwing', () => {

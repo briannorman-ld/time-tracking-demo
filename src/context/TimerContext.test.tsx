@@ -13,30 +13,33 @@ vi.mock('@/lib/launchDarklyEvents', async (importOriginal) => {
   return { ...actual, trackLaunchDarklyEvent: vi.fn() }
 })
 
-const mockCreateEntry = vi.fn(() =>
-  Promise.resolve({
-    id: 'mock-entry-id',
-    userId: 'test-user',
-    customer: 'Acme',
-    project: '',
-    notes: '',
-    date: new Date().toISOString().slice(0, 10),
-    durationMinutes: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    source: 'timer',
-    schemaVersion: 2,
-    billable: true,
-  })
-)
-vi.mock('@/lib/entries', () => ({
-  createEntry: (...args: unknown[]) => mockCreateEntry(...args),
+const { mockCreateEntry, saveActiveTimers, clearTimerState, loadLegacyTimerState, clearLegacyTimerState, mockInvalidateTotals } = vi.hoisted(() => ({
+  mockCreateEntry: vi.fn((_userId?: string, _params?: unknown) =>
+    Promise.resolve({
+      id: 'mock-entry-id',
+      userId: 'test-user',
+      customer: 'Acme',
+      project: '',
+      notes: '',
+      date: new Date().toISOString().slice(0, 10),
+      durationMinutes: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      source: 'timer',
+      schemaVersion: 2,
+      billable: true,
+    })
+  ),
+  saveActiveTimers: vi.fn(),
+  clearTimerState: vi.fn(),
+  loadLegacyTimerState: vi.fn(() => null),
+  clearLegacyTimerState: vi.fn(),
+  mockInvalidateTotals: vi.fn(),
 }))
 
-const saveActiveTimers = vi.fn()
-const clearTimerState = vi.fn()
-const loadLegacyTimerState = vi.fn(() => null)
-const clearLegacyTimerState = vi.fn()
+vi.mock('@/lib/entries', () => ({
+  createEntry: (userId: string, params: object) => mockCreateEntry(userId, params),
+}))
 
 vi.mock('@/utils/timerStorage', () => ({
   loadActiveTimers: () => [],
@@ -46,7 +49,6 @@ vi.mock('@/utils/timerStorage', () => ({
   clearLegacyTimerState,
 }))
 
-const mockInvalidateTotals = vi.fn()
 vi.mock('@/context/TimeTotalsInvalidatorContext', () => ({
   useTimeTotalsInvalidate: () => mockInvalidateTotals,
 }))
