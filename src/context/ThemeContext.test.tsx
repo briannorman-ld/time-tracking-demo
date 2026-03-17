@@ -21,6 +21,9 @@ function TestConsumer() {
       <button type="button" onClick={() => setTheme('dark')}>
         Set dark
       </button>
+      <button type="button" onClick={() => setTheme('psychedelic')}>
+        Set psychedelic
+      </button>
       <button type="button" onClick={toggleTheme}>
         Toggle
       </button>
@@ -62,9 +65,12 @@ describe('ThemeContext', () => {
     await user.click(screen.getByRole('button', { name: 'Set dark' }))
     expect(screen.getByTestId('current-theme')).toHaveTextContent('dark')
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    await user.click(screen.getByRole('button', { name: 'Set psychedelic' }))
+    expect(screen.getByTestId('current-theme')).toHaveTextContent('psychedelic')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('psychedelic')
   })
 
-  it('toggleTheme flips between light and dark', async () => {
+  it('toggleTheme cycles through light, dark, and psychedelic', async () => {
     const user = userEvent.setup()
     render(
       <ThemeProvider>
@@ -73,6 +79,8 @@ describe('ThemeContext', () => {
     )
     await user.click(screen.getByRole('button', { name: 'Toggle' }))
     expect(screen.getByTestId('current-theme')).toHaveTextContent('dark')
+    await user.click(screen.getByRole('button', { name: 'Toggle' }))
+    expect(screen.getByTestId('current-theme')).toHaveTextContent('psychedelic')
     await user.click(screen.getByRole('button', { name: 'Toggle' }))
     expect(screen.getByTestId('current-theme')).toHaveTextContent('light')
   })
@@ -88,6 +96,8 @@ describe('ThemeContext', () => {
     expect(localStorage.getItem(THEME_KEY)).toBe('light')
     await user.click(screen.getByRole('button', { name: 'Set dark' }))
     expect(localStorage.getItem(THEME_KEY)).toBe('dark')
+    await user.click(screen.getByRole('button', { name: 'Set psychedelic' }))
+    expect(localStorage.getItem(THEME_KEY)).toBe('psychedelic')
   })
 
   it('restores theme from localStorage on mount', () => {
@@ -99,6 +109,17 @@ describe('ThemeContext', () => {
     )
     expect(screen.getByTestId('current-theme')).toHaveTextContent('light')
     expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+  })
+
+  it('restores psychedelic theme from localStorage on mount', () => {
+    localStorage.setItem(THEME_KEY, 'psychedelic')
+    render(
+      <ThemeProvider>
+        <TestConsumer />
+      </ThemeProvider>
+    )
+    expect(screen.getByTestId('current-theme')).toHaveTextContent('psychedelic')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('psychedelic')
   })
 
   it('forces light mode when showThemeToggle flag is off', () => {

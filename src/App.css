@@ -38,6 +38,172 @@
   --ld-success: #16a34a;
 }
 
+[data-theme="psychedelic"] {
+  --ld-bg: #0d0221;
+  --ld-bg-subtle: #1a0a2e;
+  --ld-surface: #2d1b4e;
+  --ld-surface-hover: #4a2c7a;
+  --ld-border: #ff2a6d;
+  --ld-border-subtle: #05d9e8;
+  --ld-text: #f0e6ff;
+  --ld-text-muted: #b794f6;
+  --ld-primary: #ff2a6d;
+  --ld-primary-hover: #ff6b9d;
+  --ld-primary-muted: rgba(255, 42, 109, 0.35);
+  --ld-danger: #ff6b6b;
+  --ld-danger-muted: rgba(255, 107, 107, 0.25);
+  --ld-warning: #ffd93d;
+  --ld-success: #05ffa1;
+}
+
+/* ---- Psychedelic background layers ---- */
+@keyframes psychedelic-bg {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes psychedelic-orb-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+  25% { transform: translate(15%, -20%) scale(1.1); opacity: 0.8; }
+  50% { transform: translate(-10%, 10%) scale(0.95); opacity: 0.5; }
+  75% { transform: translate(-20%, -10%) scale(1.05); opacity: 0.7; }
+}
+
+@keyframes psychedelic-orb-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  33% { transform: translate(-25%, 15%) scale(1.15); opacity: 0.6; }
+  66% { transform: translate(20%, -15%) scale(0.9); opacity: 0.35; }
+}
+
+@keyframes psychedelic-orb-3 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
+  50% { transform: translate(10%, 25%) rotate(180deg); opacity: 0.7; }
+}
+
+@keyframes psychedelic-shimmer {
+  0%, 100% { opacity: 0.03; background-position: 200% 50%; }
+  50% { opacity: 0.08; background-position: -100% 50%; }
+}
+
+/* Very subtle distortion — a few times per cycle */
+@keyframes psychedelic-wobble {
+  0%, 18%, 22%, 38%, 42%, 58%, 62%, 78%, 82%, 100% {
+    transform: scale(1) skewX(0deg) skewY(0deg);
+  }
+  20%, 40%, 60%, 80% {
+    transform: scale(1.004) skewX(0.15deg) skewY(-0.1deg);
+  }
+}
+
+[data-theme="psychedelic"] body {
+  position: relative;
+  overflow-x: hidden;
+  background:
+    linear-gradient(125deg, #0d0221 0%, #1a0a2e 20%, #2d1b4e 40%, #0d0221 60%, #16213e 80%, #0d0221 100%);
+  background-size: 400% 400%;
+  animation: psychedelic-bg 8s ease-in-out infinite;
+}
+
+[data-theme="psychedelic"] body::before,
+[data-theme="psychedelic"] body::after {
+  content: '';
+  position: fixed;
+  inset: -30%;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+}
+
+[data-theme="psychedelic"] body::before {
+  background: radial-gradient(circle, #ff2a6d 0%, transparent 50%);
+  animation: psychedelic-orb-1 12s ease-in-out infinite;
+}
+
+[data-theme="psychedelic"] body::after {
+  background: radial-gradient(circle, #05d9e8 0%, transparent 45%);
+  animation: psychedelic-orb-2 15s ease-in-out infinite 1s;
+}
+
+[data-theme="psychedelic"] #root {
+  position: relative;
+  z-index: 1;
+  animation: psychedelic-wobble 24s ease-in-out infinite;
+}
+
+[data-theme="psychedelic"] #root::before {
+  content: '';
+  position: fixed;
+  top: -20%;
+  right: -15%;
+  width: 60vmax;
+  height: 60vmax;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, #05ffa1 0%, transparent 50%);
+  mix-blend-mode: screen;
+  animation: psychedelic-orb-3 18s ease-in-out infinite 0.5s;
+}
+
+[data-theme="psychedelic"] main {
+  background: transparent;
+  position: relative;
+}
+
+/* Shimmer overlay on main content */
+[data-theme="psychedelic"] main::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 42, 109, 0.08) 25%,
+    rgba(5, 217, 232, 0.08) 50%,
+    rgba(5, 255, 161, 0.06) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: psychedelic-shimmer 6s ease-in-out infinite;
+}
+
+[data-theme="psychedelic"] main > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Pulsing border glow on sidebar and cards */
+@keyframes psychedelic-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px var(--ld-border), 0 0 12px rgba(255, 42, 109, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 1px var(--ld-border-subtle), 0 0 20px rgba(5, 217, 232, 0.35);
+  }
+}
+
+@keyframes psychedelic-border-pulse {
+  0%, 100% { border-color: var(--ld-border); }
+  50% { border-color: var(--ld-border-subtle); }
+}
+
+[data-theme="psychedelic"] .app-sidebar {
+  animation: psychedelic-border-pulse 4s ease-in-out infinite;
+  box-shadow: 2px 0 20px rgba(255, 42, 109, 0.15);
+}
+
+[data-theme="psychedelic"] .time-entries-list li,
+[data-theme="psychedelic"] .time-entries-active-timers li {
+  animation: psychedelic-border-pulse 5s ease-in-out infinite;
+}
+
+[data-theme="psychedelic"] .time-entries-add-time-card {
+  animation: psychedelic-glow 4s ease-in-out infinite, psychedelic-border-pulse 5s ease-in-out infinite;
+}
+
 * {
   box-sizing: border-box;
 }

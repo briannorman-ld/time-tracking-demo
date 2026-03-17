@@ -25,13 +25,17 @@ describe('Sidebar', () => {
     vi.mocked(useShowThemeToggle).mockReturnValue(true)
   })
 
-  it('shows theme toggle when showThemeToggle flag is true', () => {
+  it('shows theme options (Light, Dark, Psychedelic) when showThemeToggle flag is true', () => {
     renderSidebar(true)
-    expect(screen.getByRole('button', { name: /switch to (light|dark) mode/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /light mode/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /dark mode/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /psychedelic mode/i })).toBeInTheDocument()
   })
 
-  it('hides theme toggle when showThemeToggle flag is false', () => {
+  it('hides theme options when showThemeToggle flag is false', () => {
     renderSidebar(false)
-    expect(screen.queryByRole('button', { name: /switch to (light|dark) mode/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /light mode/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /dark mode/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /psychedelic mode/i })).not.toBeInTheDocument()
   })
 })

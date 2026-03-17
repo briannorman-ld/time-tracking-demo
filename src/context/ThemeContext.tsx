@@ -11,7 +11,9 @@ import { useShowThemeToggle } from '@/context/ShowThemeToggleContext'
 
 const THEME_KEY = 'time-tracker-demo-theme'
 
-export type Theme = 'light' | 'dark'
+export type Theme = 'light' | 'dark' | 'psychedelic'
+
+const THEMES: Theme[] = ['light', 'dark', 'psychedelic']
 
 interface ThemeContextValue {
   theme: Theme
@@ -24,7 +26,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null)
 function loadTheme(): Theme {
   try {
     const raw = localStorage.getItem(THEME_KEY)
-    if (raw === 'light' || raw === 'dark') return raw
+    if (raw === 'light' || raw === 'dark' || raw === 'psychedelic') return raw
   } catch {
     // ignore
   }
@@ -63,7 +65,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const toggleTheme = useCallback(() => {
-    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'))
+    setThemeState((prev) => {
+      const i = THEMES.indexOf(prev)
+      return THEMES[(i + 1) % THEMES.length]
+    })
   }, [])
 
   const value = useMemo(

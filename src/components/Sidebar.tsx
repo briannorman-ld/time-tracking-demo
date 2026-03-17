@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import type { Theme } from '@/context/ThemeContext'
 import { useTheme } from '@/context/ThemeContext'
 import { useShowThemeToggle } from '@/context/ShowThemeToggleContext'
 import './Sidebar.css'
@@ -9,14 +10,22 @@ const NAV = [
   { to: '/customers', label: 'Customers' },
 ]
 
+const THEME_LABELS: Record<Theme, string> = {
+  light: '☀️ Light',
+  dark: '🌙 Dark',
+  psychedelic: '🌈 Psychedelic',
+}
+
 interface SidebarProps {
   todayHours?: number
   weekHours?: number
 }
 
+const THEMES: Theme[] = ['light', 'dark', 'psychedelic']
+
 export function Sidebar({ todayHours = 0, weekHours = 0 }: SidebarProps) {
   const location = useLocation()
-  const { theme, toggleTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
   const showThemeToggle = useShowThemeToggle()
 
   return (
@@ -39,15 +48,21 @@ export function Sidebar({ todayHours = 0, weekHours = 0 }: SidebarProps) {
       <div className="app-sidebar-footer">
         {showThemeToggle && (
           <div className="app-sidebar-theme-section">
-            <button
-              type="button"
-              className="app-sidebar-theme-toggle"
-              onClick={toggleTheme}
-              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-            >
-              {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
-            </button>
+            <div className="app-sidebar-theme-options" role="group" aria-label="Theme">
+              {THEMES.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  className={`app-sidebar-theme-toggle${theme === t ? ' active' : ''}`}
+                  onClick={() => setTheme(t)}
+                  aria-label={`${t} mode`}
+                  aria-pressed={theme === t}
+                  title={`${t} mode`}
+                >
+                  {THEME_LABELS[t]}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         <div className="app-sidebar-totals">

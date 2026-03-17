@@ -48,6 +48,12 @@
   padding: 1rem 5px 0 5px;
 }
 
+.app-sidebar-theme-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .app-sidebar-theme-toggle {
   width: 100%;
   padding: 0.5rem 1rem;
@@ -62,6 +68,12 @@
 
 .app-sidebar-theme-toggle:hover {
   background: var(--ld-surface-hover);
+}
+
+.app-sidebar-theme-toggle.active {
+  background: var(--ld-primary-muted);
+  color: var(--ld-primary);
+  font-weight: 500;
 }
 
 .app-sidebar-totals {
