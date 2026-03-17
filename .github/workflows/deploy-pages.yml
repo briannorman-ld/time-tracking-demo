@@ -39,6 +39,8 @@ jobs:
         env:
           # Project site URL is https://<owner>.github.io/<repo>/
           BASE_PATH: /${{ github.event.repository.name }}/
+          # LaunchDarkly client-side ID (add LAUNCHDARKLY_CLIENT_ID in repo Secrets for flags to work on GitHub Pages)
+          VITE_LAUNCHDARKLY_CLIENT_ID: ${{ secrets.LAUNCHDARKLY_CLIENT_ID }}
         run: npm run build
 
       - name: Copy index.html to 404.html for SPA client-side routing

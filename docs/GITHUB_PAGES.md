@@ -10,6 +10,16 @@ The app is set up to build and deploy to GitHub Pages via a GitHub Action.
 
 After that, every push to `main` will run the workflow, build the app, and publish the site.
 
+### Feature flags (LaunchDarkly) on GitHub Pages
+
+For LaunchDarkly feature flags to work on the deployed site, the build needs your **client-side ID**. Add it as a repository secret:
+
+1. In GitHub: **Settings → Secrets and variables → Actions**.
+2. **New repository secret**: name `LAUNCHDARKLY_CLIENT_ID`, value = your LaunchDarkly client-side ID (same as `VITE_LAUNCHDARKLY_CLIENT_ID` in local `.env`).
+3. Re-run the deploy workflow (or push a commit). The next build will bake the ID into the app and flags will work on the GitHub Pages URL.
+
+If this secret is not set, the app still builds and deploys; flags will use defaults and won’t reflect your LaunchDarkly targeting.
+
 ## URL
 
 Your site will be available at:
