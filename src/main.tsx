@@ -3,8 +3,6 @@ import { createRoot } from 'react-dom/client'
 import { asyncWithLDProvider } from 'launchdarkly-react-client-sdk'
 import Observability from '@launchdarkly/observability'
 import SessionReplay from '@launchdarkly/session-replay'
-import { ThemeProvider } from '@/context/ThemeContext'
-import { ShowThemeToggleProvider } from '@/context/ShowThemeToggleContext'
 import { buildLaunchDarklyContext } from '@/lib/launchDarklyContext'
 import App from './App'
 import './App.css'
@@ -23,11 +21,7 @@ async function init() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <LDProvider>
-        <ShowThemeToggleProvider>
-          <ThemeProvider>
-            <App />
-          </ThemeProvider>
-        </ShowThemeToggleProvider>
+        <App />
       </LDProvider>
     </StrictMode>
   )

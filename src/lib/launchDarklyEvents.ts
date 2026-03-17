@@ -17,6 +17,8 @@ export interface LaunchDarklyEventLogEntry {
   data?: Record<string, unknown>
   metricValue?: number
   sent: boolean
+  /** True when the event was skipped because a matching event was sent recently (dedupe). */
+  deduped?: boolean
 }
 
 export function getRecentLaunchDarklyEvents(limit = 50): LaunchDarklyEventLogEntry[] {
@@ -32,29 +34,51 @@ export function getLaunchDarklyClient(): LDClientLike | null {
   return ldClient
 }
 
+/** Dedupe window: same event key + payload within this ms is not sent again (avoids React Strict Mode / double-invoke). */
+const GLOBAL_DEDUPE_MS = 1500
+const lastSentAtByKey: Record<string, number> = {}
+
+function dedupeKey(eventKey: string, data?: Record<string, unknown>, metricValue?: number): string {
+  const payload = JSON.stringify({ d: data ?? null, m: metricValue })
+  return `${eventKey}\n${payload}`
+}
+
 /**
  * Sends a custom event to LaunchDarkly for the current context.
  * No-op if the client has not been set.
+ * Duplicate events (same key + payload within 1.5s) are not sent to avoid double-fire from Strict Mode.
  */
 export function trackLaunchDarklyEvent(
   eventKey: string,
   data?: Record<string, unknown>,
   metricValue?: number
 ): void {
-  const sent = !!ldClient
+  const now = Date.now()
+  const key = dedupeKey(eventKey, data, metricValue)
+  const lastSent = lastSentAtByKey[key]
+  const isDuplicate = lastSent != null && now - lastSent < GLOBAL_DEDUPE_MS
+
   const entry: LaunchDarklyEventLogEntry = {
     ts: new Date().toISOString(),
     eventKey,
     data,
     metricValue,
-    sent,
+    sent: !isDuplicate && !!ldClient,
+    deduped: isDuplicate,
   }
   LD_EVENT_LOG.push(entry)
   if (LD_EVENT_LOG.length > LD_EVENT_LOG_MAX) LD_EVENT_LOG.shift()
-  const suffix = sent ? '(sent)' : '(client not set, not sent)'
-  console.log('[LaunchDarkly]', eventKey, data ?? {}, metricValue !== undefined ? { metricValue } : {}, suffix)
+
+  if (isDuplicate) {
+    console.log('[LaunchDarkly]', eventKey, '(deduped, not sent)')
+    return
+  }
   if (ldClient) {
+    lastSentAtByKey[key] = now
     ldClient.track(eventKey, data, metricValue)
+    console.log('[LaunchDarkly]', eventKey, data ?? {}, metricValue !== undefined ? { metricValue } : {}, '(sent)')
+  } else {
+    console.log('[LaunchDarkly]', eventKey, '(client not set, not sent)')
   }
 }
 
@@ -72,18 +96,33 @@ export const LD_EVENT_TTD_REPORTS_PAGE_VIEW = 'ttd-reports-page-view'
 /** Event key sent when the Customers page is viewed. */
 export const LD_EVENT_TTD_CUSTOMERS_PAGE_VIEW = 'ttd-customers-page-view'
 
+/** Dedupe window (ms) so page-view events don't fire twice under React Strict Mode. */
+const PAGE_VIEW_DEDUPE_MS = 2000
+const lastPageViewSentAt: Record<string, number> = {}
+
+function trackPageViewOnce(eventKey: string): void {
+  const now = Date.now()
+  if (lastPageViewSentAt[eventKey] != null && now - lastPageViewSentAt[eventKey] < PAGE_VIEW_DEDUPE_MS) {
+    return
+  }
+  lastPageViewSentAt[eventKey] = now
+  trackLaunchDarklyEvent(eventKey)
+}
+
 /**
  * Sends the LaunchDarkly event for Reports page view. Call when the Reports page is loaded.
+ * Deduped so it fires at most once per 2s (avoids double fire under React Strict Mode).
  */
 export function trackReportsPageView(): void {
-  trackLaunchDarklyEvent(LD_EVENT_TTD_REPORTS_PAGE_VIEW)
+  trackPageViewOnce(LD_EVENT_TTD_REPORTS_PAGE_VIEW)
 }
 
 /**
  * Sends the LaunchDarkly event for Customers page view. Call when the Customers page is loaded.
+ * Deduped so it fires at most once per 2s (avoids double fire under React Strict Mode).
  */
 export function trackCustomersPageView(): void {
-  trackLaunchDarklyEvent(LD_EVENT_TTD_CUSTOMERS_PAGE_VIEW)
+  trackPageViewOnce(LD_EVENT_TTD_CUSTOMERS_PAGE_VIEW)
 }
 
 type EntrySource = 'manual' | 'timer' | 'import'

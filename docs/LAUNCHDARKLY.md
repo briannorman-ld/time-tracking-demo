@@ -11,13 +11,10 @@ The app uses a **mock** flag system so it runs without any external service:
 - **`src/lib/flags/index.ts`** — `evaluateFlag(flagKey, defaultValue, context?)` reads from an in-memory store and returns the value or `defaultValue`. Evaluations are logged for the Demo Mode Events tab.
 - **`src/lib/flags/README.md`** — Describes replacing the mock with a real provider.
 
-Flags currently used in the app include:
+The app uses only two LaunchDarkly flags:
 
-- `navLayoutVariant` — `'tabs'` or `'sidebar'`
-- `enableTimer`, `enableReports`, `assistantEnabled` — booleans
-- `show-ld-admin-tools` — boolean; show/hide the LD Admin Tools button and panel in the header.
-- `showThemeToggle` — boolean; show/hide the light/dark mode button in the sidebar (LD “Show” flag: **Show: theme toggle**).
-- (Previously `entryCreateUx` — form vs quick-add.)
+- **`show-theme-toggle`** — boolean; show/hide the light/dark mode toggle in the sidebar. Read in `ShowThemeToggleContext` via `ldClient.variation()`.
+- **`show-ld-admin-tools`** — boolean; show/hide the LD Admin Tools button and side panel in the header. Read in `App.tsx` via `useFlags()`.
 
 To use LaunchDarkly, you will:
 
@@ -149,9 +146,9 @@ Flags live in the LaunchDarkly project and define **variations** (e.g. on/off, o
 
 ### Flag key
 
-- Use the **flag key** in your code (e.g. `evaluateFlag('enableTimer', true)` → flag key `enableTimer`).
+- Use the **flag key** in your code (e.g. `ldClient.variation('show-theme-toggle', true)` or `flags['show-ld-admin-tools']`).
 - Keys can contain letters, numbers, `.`, `_`, `-`. After save, the key cannot be changed.
-- React Web SDK **camelCases** flag keys by default (e.g. `enable-timer` → `flags.enableTimer`). You can turn this off with `reactOptions: { useCamelCaseFlagKeys: false }` and use bracket notation.
+- React Web SDK **camelCases** flag keys by default (e.g. `show-ld-admin-tools` → `flags.showLdAdminTools`). You can turn this off with `reactOptions: { useCamelCaseFlagKeys: false }` and use bracket notation.
 
 ### Client-side and mobile availability
 
@@ -173,18 +170,16 @@ import { useFlags } from 'launchdarkly-react-client-sdk';
 
 function MyComponent() {
   const flags = useFlags();
-  const enableTimer = flags.enableTimer ?? true;  // fallback if not yet loaded
-  return enableTimer ? <Timer /> : null;
+  const showLdAdminTools = flags.showLdAdminTools ?? false;  // fallback if not yet loaded
+  return showLdAdminTools ? <AdminToolsButton /> : null;
 }
 ```
 
-Or with the underlying client (e.g. for non-React code or when you need the exact key):
+Or with the underlying client (e.g. in `ShowThemeToggleContext`):
 
 ```js
-const value = ldClient.variation('enableTimer', true);
+const value = ldClient.variation('show-theme-toggle', true);
 ```
-
-To align with this repo's API, implement `evaluateFlag(flagKey, defaultValue, context?)` by calling the SDK's variation method with `flagKey` and `defaultValue`; pass `context` when initializing or when calling `identify`.
 
 ---
 
@@ -295,8 +290,6 @@ Use one of the **AI SDKs** (e.g. [Node](https://docs.launchdarkly.com/sdk/ai/nod
 1. **Install:** `npm install launchdarkly-react-client-sdk`
 2. **Get client-side ID** from Project settings → Environments (e.g. Production, Test).
 3. **Wrap app** with `asyncWithLDProvider({ clientSideID, context })` (or `withLDProvider`), and call `identify()` when the user logs in if you defer context.
-4. **Replace `evaluateFlag`** in `src/lib/flags/index.ts` so it calls the LaunchDarkly client's `variation(flagKey, defaultValue)` (and pass the same `context` via init/identify).
-5. **Create flags** in the UI for `enableTimer`, `enableReports`, `navLayoutVariant`, `assistantEnabled`, etc., and enable **Client-side** availability.
+4. **Read flags** in the app: `show-theme-toggle` is read in `ShowThemeToggleContext` via `ldClient.variation()`; `show-ld-admin-tools` is read in `App.tsx` via `useFlags()`.
+5. **Create flags** in the UI for `show-theme-toggle` and `show-ld-admin-tools`, and enable **Client-side** availability.
 6. **Optional:** Add experiments, guarded rollouts, or AI Configs as above.
-
-Keeping the existing `evaluateFlag(flagKey, defaultValue, context?)` signature means the rest of the app (TimeEntries, App, etc.) can stay unchanged.

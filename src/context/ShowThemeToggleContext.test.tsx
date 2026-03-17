@@ -2,17 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ShowThemeToggleProvider, useShowThemeToggle } from '@/context/ShowThemeToggleContext'
 
-const mockVariation = vi.fn()
-const mockOn = vi.fn()
-const mockOff = vi.fn()
-
 vi.mock('launchdarkly-react-client-sdk', () => ({
-  useLDClient: vi.fn(),
+  useFlags: vi.fn(),
+  useLDClient: vi.fn(() => null),
 }))
 
-async function getUseLDClient() {
-  const { useLDClient } = await import('launchdarkly-react-client-sdk')
-  return useLDClient as ReturnType<typeof vi.fn>
+vi.mock('@/context/SessionContext', () => ({
+  useSession: vi.fn(() => ({ user: { id: 'test-user' } })),
+}))
+
+async function getUseFlags() {
+  const { useFlags } = await import('launchdarkly-react-client-sdk')
+  return useFlags as ReturnType<typeof vi.fn>
 }
 
 function TestConsumer() {
@@ -23,18 +24,11 @@ function TestConsumer() {
 describe('ShowThemeToggleContext', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockVariation.mockReturnValue(true)
-    mockOn.mockReturnValue(undefined)
-    mockOff.mockReturnValue(undefined)
   })
 
-  it('evaluates flag once on mount and provides value', async () => {
-    const useLDClient = await getUseLDClient()
-    vi.mocked(useLDClient).mockReturnValue({
-      variation: mockVariation,
-      on: mockOn,
-      off: mockOff,
-    })
+  it('reads showThemeToggle from useFlags and provides value', async () => {
+    const useFlags = await getUseFlags()
+    vi.mocked(useFlags).mockReturnValue({ showThemeToggle: true })
 
     render(
       <ShowThemeToggleProvider>
@@ -42,15 +36,12 @@ describe('ShowThemeToggleContext', () => {
       </ShowThemeToggleProvider>
     )
 
-    expect(mockVariation).toHaveBeenCalledTimes(1)
-    expect(mockVariation).toHaveBeenCalledWith('show-theme-toggle', true)
     expect(screen.getByTestId('show-theme-toggle')).toHaveTextContent('true')
-    expect(mockOn).toHaveBeenCalledWith('change:show-theme-toggle', expect.any(Function))
   })
 
-  it('subscribes to flag change and uses default when client is not ready', async () => {
-    const useLDClient = await getUseLDClient()
-    vi.mocked(useLDClient).mockReturnValue(undefined)
+  it('returns false when flag is false', async () => {
+    const useFlags = await getUseFlags()
+    vi.mocked(useFlags).mockReturnValue({ showThemeToggle: false })
 
     render(
       <ShowThemeToggleProvider>
@@ -58,7 +49,65 @@ describe('ShowThemeToggleContext', () => {
       </ShowThemeToggleProvider>
     )
 
-    expect(mockVariation).not.toHaveBeenCalled()
+    expect(screen.getByTestId('show-theme-toggle')).toHaveTextContent('false')
+  })
+
+  it('uses default (true) when flags are empty or flag missing', async () => {
+    const useFlags = await getUseFlags()
+    vi.mocked(useFlags).mockReturnValue({})
+
+    render(
+      <ShowThemeToggleProvider>
+        <TestConsumer />
+      </ShowThemeToggleProvider>
+    )
+
     expect(screen.getByTestId('show-theme-toggle')).toHaveTextContent('true')
+  })
+
+  it('supports kebab-case key show-theme-toggle', async () => {
+    const useFlags = await getUseFlags()
+    vi.mocked(useFlags).mockReturnValue({ 'show-theme-toggle': false })
+
+    render(
+      <ShowThemeToggleProvider>
+        <TestConsumer />
+      </ShowThemeToggleProvider>
+    )
+
+    expect(screen.getByTestId('show-theme-toggle')).toHaveTextContent('false')
+  })
+
+  it('hides toggle immediately on user switch, then shows new user flag after delay', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const { useFlags } = await import('launchdarkly-react-client-sdk')
+    const { useSession } = await import('@/context/SessionContext')
+    const { useLDClient } = await import('launchdarkly-react-client-sdk')
+    vi.mocked(useFlags).mockReturnValue({ showThemeToggle: true })
+    const sessionMock = vi.mocked(useSession)
+    sessionMock
+      .mockReturnValueOnce({ user: { id: 'brian' } } as never)
+      .mockReturnValue({ user: { id: 'alex' } } as never)
+    const variation = vi.fn((_key: string, def: boolean) => def)
+    variation.mockReturnValue(false)
+    vi.mocked(useLDClient).mockReturnValue({ variation } as never)
+
+    const { rerender } = render(
+      <ShowThemeToggleProvider>
+        <TestConsumer />
+      </ShowThemeToggleProvider>
+    )
+    expect(screen.getByTestId('show-theme-toggle')).toHaveTextContent('true')
+
+    rerender(
+      <ShowThemeToggleProvider>
+        <TestConsumer />
+      </ShowThemeToggleProvider>
+    )
+    expect(screen.getByTestId('show-theme-toggle')).toHaveTextContent('false')
+
+    await vi.advanceTimersByTimeAsync(800)
+    expect(screen.getByTestId('show-theme-toggle')).toHaveTextContent('false')
+    vi.useRealTimers()
   })
 })

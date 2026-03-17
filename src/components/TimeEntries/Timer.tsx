@@ -31,7 +31,6 @@ export function Timer({ customerNames, onCreateCustomer }: TimerProps) {
   return (
     <div className="timer-block">
       <h3>Timer</h3>
-      <p className="timer-block-hint">Start a timer — it will appear in the entries list below. Pause to save that segment as an entry; resume anytime to continue.</p>
       <div className="timer-customer-wrap">
         <CustomerSelect
           value={showNewCustomerInput ? CREATE_NEW_VALUE : timer.draftCustomer}

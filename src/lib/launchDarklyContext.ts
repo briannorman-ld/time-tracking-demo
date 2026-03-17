@@ -26,8 +26,13 @@ export function getDeviceKey(): string {
 /**
  * Builds a LaunchDarkly multi-kind context with "user" and "device" kinds.
  * When user is null, the user kind is anonymous so the SDK still has a valid context.
+ * When userKeyOverride is provided (e.g. from LD Admin Tools "Randomize user key"), the user
+ * kind uses that key instead of user.id so you can test different targeting evaluations.
  */
-export function buildLaunchDarklyContext(user: DemoUser | null): LDContext {
+export function buildLaunchDarklyContext(
+  user: DemoUser | null,
+  userKeyOverride?: string | null
+): LDContext {
   const deviceKey = getDeviceKey()
   const deviceContext = {
     key: deviceKey,
@@ -39,8 +44,8 @@ export function buildLaunchDarklyContext(user: DemoUser | null): LDContext {
 
   const userContext = user
     ? {
-        key: user.id,
-        id: user.id,
+        key: userKeyOverride ?? user.id,
+        id: userKeyOverride ?? user.id,
         name: user.displayName,
         email: user.email,
         ...(user.phone != null && { phone: user.phone }),

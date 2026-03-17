@@ -1,25 +1,17 @@
-# Feature flags (mock)
+# Feature flags (LaunchDarkly)
 
-The app uses a **mock** feature-flag system in `src/lib/flags/`. No external vendor is installed.
-
-## API
-
-- **`initFlags()`** — Stub initializer; returns `{ initialized, logs }`. Call once at app load.
-- **`evaluateFlag(flagKey, defaultValue, context?)`** — Returns the value for `flagKey` from the in-memory store, or `defaultValue`. Logs each evaluation for the Demo Mode Events tab.
-- **`setMockFlag(flagKey, value)`** — Sets a flag at runtime (used by the Demo Mode Flags tab).
+The app uses **LaunchDarkly** for two feature flags only.
 
 ## Flags used in the app
 
 | Key | Type | Default | Purpose |
 |-----|------|--------|---------|
-| `demoModeEnabled` | boolean | true | Show/hide the Demo Mode drawer control. |
-| `entryCreateUx` | "form" \| "quickAdd" | "form" | Full form vs quick-add for new entries. |
-| `navLayoutVariant` | "tabs" \| "sidebar" | "tabs" | Day/Week layout style. |
-| `enableTimer` | boolean | true | Show/hide the timer UI. |
-| `enableReports` | boolean | true | Show/hide the minimal reports card. |
-| `assistantEnabled` | boolean | false | Show/hide the Chat Assistant. |
-| `show-ld-admin-tools` | boolean | false | Show/hide the LD Admin Tools button and side panel. |
+| `show-theme-toggle` | boolean | true | Show/hide the light/dark mode toggle in the sidebar. |
+| `show-ld-admin-tools` | boolean | false | Show/hide the LD Admin Tools button and side panel in the header. |
 
-## Replacing with a real provider
+## Where they are read
 
-See `src/lib/flags/README.md` for step-by-step migration notes. Keep the same `evaluateFlag(flagKey, defaultValue, context?)` contract so the rest of the app does not need to change.
+- **`show-theme-toggle`** — `src/context/ShowThemeToggleContext.tsx` (uses `ldClient.variation()` and subscribes to flag changes).
+- **`show-ld-admin-tools`** — `src/App.tsx` (uses `useFlags()` from the LaunchDarkly React SDK).
+
+Create these two flags in your LaunchDarkly project and enable **Client-side** availability so the browser SDK can evaluate them.

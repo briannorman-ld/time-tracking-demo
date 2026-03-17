@@ -1,40 +1,61 @@
 /**
- * Single evaluation of the show-theme-toggle flag. The flag is read once on mount
- * and when LD notifies of a change, so we avoid re-evaluating on every render.
+ * Reads the show-theme-toggle flag. When the session user changes we force-hide
+ * the toggle briefly, then re-read from the LD client (identify() is async and
+ * useFlags() can lag; re-reading after a delay ensures we get the new user's value).
  */
 import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
-import { useLDClient } from 'launchdarkly-react-client-sdk'
+import { useLDClient, useFlags } from 'launchdarkly-react-client-sdk'
+import { useSession } from '@/context/SessionContext'
 
 const FLAG_KEY = 'show-theme-toggle'
 const DEFAULT = true
+const REREAD_DELAY_MS = 800
 
 const ShowThemeToggleContext = createContext<boolean>(DEFAULT)
 
+function readShowThemeToggle(flags: Record<string, unknown>): boolean {
+  const v = flags.showThemeToggle ?? flags['show-theme-toggle']
+  return typeof v === 'boolean' ? v : DEFAULT
+}
+
 export function ShowThemeToggleProvider({ children }: { children: ReactNode }) {
+  const flags = useFlags()
   const ldClient = useLDClient()
-  const [showThemeToggle, setShowThemeToggle] = useState<boolean>(DEFAULT)
+  const { user } = useSession()
+  const userId = user?.id
+  const [forceHide, setForceHide] = useState(false)
+  const [resolvedAfterSwitch, setResolvedAfterSwitch] = useState<boolean | null>(null)
+  const prevUserIdRef = useRef<string | undefined>(undefined)
 
   useEffect(() => {
-    if (!ldClient) return
-    const initial = ldClient.variation(FLAG_KEY, DEFAULT) as boolean
-    console.log('[LaunchDarkly] show-theme-toggle evaluated:', initial)
-    setShowThemeToggle(initial)
-    const handler = () => {
-      const value = ldClient.variation(FLAG_KEY, DEFAULT) as boolean
-      console.log('[LaunchDarkly] show-theme-toggle evaluated (change):', value)
-      setShowThemeToggle(value)
+    if (prevUserIdRef.current === undefined) {
+      prevUserIdRef.current = userId
+      return
     }
-    ldClient.on(`change:${FLAG_KEY}`, handler)
-    return () => {
-      ldClient.off(`change:${FLAG_KEY}`, handler)
-    }
-  }, [ldClient])
+    if (prevUserIdRef.current === userId) return
+    prevUserIdRef.current = userId
+    setForceHide(true)
+    setResolvedAfterSwitch(null)
+    const t = setTimeout(() => {
+      const value =
+        ldClient != null
+          ? (ldClient.variation(FLAG_KEY, DEFAULT) as boolean)
+          : readShowThemeToggle(flags)
+      setResolvedAfterSwitch(value)
+      setForceHide(false)
+    }, REREAD_DELAY_MS)
+    return () => clearTimeout(t)
+  }, [userId, ldClient, flags])
+
+  const fromFlags = readShowThemeToggle(flags)
+  const showThemeToggle = forceHide ? false : (resolvedAfterSwitch ?? fromFlags)
 
   return (
     <ShowThemeToggleContext.Provider value={showThemeToggle}>

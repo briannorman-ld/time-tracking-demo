@@ -160,9 +160,9 @@ export function EntryForm({
         </div>
         <input
           type="number"
-          min={0.25}
+          min={0}
           max={24}
-          step={0.25}
+          step={0.01}
           value={durationHours}
           onChange={(e) => setDurationHours(Number(e.target.value))}
           title="Hours"
@@ -222,9 +222,9 @@ export function EntryForm({
         Duration (hours)
         <input
           type="number"
-          min={0.25}
+          min={0}
           max={24}
-          step={0.25}
+          step={0.01}
           value={durationHours}
           onChange={(e) => setDurationHours(Number(e.target.value))}
         />

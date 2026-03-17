@@ -14,7 +14,6 @@ import {
   roundToNearest,
 } from '@/lib/preferences'
 import type { TimeEntry } from '@/types/entry'
-import { evaluateFlag } from '@/lib/flags'
 import { useTimeTotalsInvalidate, useTimeTotalsInvalidatorVersion } from '@/context/TimeTotalsInvalidatorContext'
 import { useTimer } from '@/context/TimerContext'
 import { trackEvent } from '@/utils/trackEvent'
@@ -100,10 +99,6 @@ export function TimeEntries() {
     })
   }, [])
 
-  const navLayoutVariant = evaluateFlag('navLayoutVariant', 'tabs', {
-    userId: user?.id,
-  }) as 'tabs' | 'sidebar'
-  const enableTimer = evaluateFlag('enableTimer', true, { userId: user?.id })
   const invalidateTotals = useTimeTotalsInvalidate()
   const invalidatorVersion = useTimeTotalsInvalidatorVersion()
   const timer = useTimer()
@@ -240,13 +235,7 @@ export function TimeEntries() {
             Today
           </button>
         </div>
-        <div
-          className={
-            navLayoutVariant === 'sidebar'
-              ? 'time-entries-view-tabs sidebar-style'
-              : 'time-entries-view-tabs'
-          }
-        >
+        <div className="time-entries-view-tabs">
           <button
             type="button"
             className={view === 'day' ? 'active' : ''}
@@ -266,9 +255,7 @@ export function TimeEntries() {
 
       <div className="time-entries-main">
         <div className="time-entries-primary">
-          {enableTimer && (
-            <Timer customerNames={customers} onCreateCustomer={handleCreateCustomer} />
-          )}
+          <Timer customerNames={customers} onCreateCustomer={handleCreateCustomer} />
           {showAddTime ? (
             <div className="time-entries-add-time-card">
               <EntryForm
@@ -429,40 +416,38 @@ export function TimeEntries() {
                 .filter((e) => !timer.activeTimers.some((t) => t.entryId === e.id))
                 .map((e) => (
                 <li key={e.id} className="entry-row-clickable">
-                  {enableTimer && (
-                    <span className="entry-actions entry-actions-left" onClick={(ev) => ev.stopPropagation()}>
-                      <button
-                        type="button"
-                        className="entry-btn-resume"
-                        onClick={(ev) => {
-                          ev.stopPropagation()
-                            const existingTimer = timer.activeTimers.find((t) => t.entryId === e.id)
-                            if (existingTimer) {
-                              timer.resume(existingTimer.id)
-                              return
-                            }
-                            // Paused timer without entryId (e.g. legacy): resume it and link to this entry instead of creating new
-                            const pausedMatch = timer.activeTimers.find(
-                              (t) =>
-                                t.status === 'paused' &&
-                                !t.entryId &&
-                                t.customer === e.customer &&
-                                (t.notes ?? '') === (e.notes ?? '')
-                            )
-                            if (pausedMatch) {
-                              timer.updateTimer(pausedMatch.id, { entryId: e.id })
-                              timer.resume(pausedMatch.id)
-                            } else {
-                              timer.startWith(e.customer, e.notes ?? '')
-                            }
+                  <span className="entry-actions entry-actions-left" onClick={(ev) => ev.stopPropagation()}>
+                    <button
+                      type="button"
+                      className="entry-btn-resume"
+                      onClick={(ev) => {
+                        ev.stopPropagation()
+                        const existingTimer = timer.activeTimers.find((t) => t.entryId === e.id)
+                        if (existingTimer) {
+                          timer.resume(existingTimer.id)
+                          return
+                        }
+                        // Paused timer without entryId (e.g. legacy): resume it and link to this entry instead of creating new
+                        const pausedMatch = timer.activeTimers.find(
+                          (t) =>
+                            t.status === 'paused' &&
+                            !t.entryId &&
+                            t.customer === e.customer &&
+                            (t.notes ?? '') === (e.notes ?? '')
+                        )
+                        if (pausedMatch) {
+                          timer.updateTimer(pausedMatch.id, { entryId: e.id })
+                          timer.resume(pausedMatch.id)
+                        } else {
+                          timer.startWith(e.customer, e.notes ?? '')
+                        }
                       }}
-                        title="Resume timer"
-                        aria-label="Resume timer"
-                      >
-                        ▶
-                      </button>
-                    </span>
-                  )}
+                      title="Resume timer"
+                      aria-label="Resume timer"
+                    >
+                      ▶
+                    </button>
+                  </span>
                   <div
                     className="entry-row-content"
                     onClick={() => setEntryModalId(e.id)}

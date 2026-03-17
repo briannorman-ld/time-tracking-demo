@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSession } from '@/context/SessionContext'
+import { useLdUserKeyOverride } from '@/context/LdUserKeyOverrideContext'
 import { buildLaunchDarklyContext } from '@/lib/launchDarklyContext'
 import {
   getRecentLaunchDarklyEvents,
@@ -7,15 +8,20 @@ import {
 } from '@/lib/launchDarklyEvents'
 import './LDAdminToolsPanel.css'
 
+function randomUserKey(): string {
+  return `user-${Math.random().toString(36).slice(2, 10)}`
+}
+
 interface LDAdminToolsPanelProps {
   onClose: () => void
 }
 
 export function LDAdminToolsPanel({ onClose }: LDAdminToolsPanelProps) {
   const { user } = useSession()
+  const ldOverride = useLdUserKeyOverride()
   const [events, setEvents] = useState<LaunchDarklyEventLogEntry[]>([])
 
-  const context = buildLaunchDarklyContext(user ?? null)
+  const context = buildLaunchDarklyContext(user ?? null, ldOverride?.userKeyOverride ?? null)
 
   useEffect(() => {
     setEvents(getRecentLaunchDarklyEvents(50))
@@ -46,6 +52,26 @@ export function LDAdminToolsPanel({ onClose }: LDAdminToolsPanelProps) {
             <p className="ld-admin-hint">
               User + device context sent to LaunchDarkly (identify).
             </p>
+            {ldOverride && (
+              <div className="ld-admin-user-key-actions">
+                <button
+                  type="button"
+                  className="ld-admin-btn"
+                  onClick={() => ldOverride.setUserKeyOverride(randomUserKey())}
+                >
+                  Randomize user key
+                </button>
+                {ldOverride.userKeyOverride !== null && (
+                  <button
+                    type="button"
+                    className="ld-admin-btn ld-admin-btn-secondary"
+                    onClick={() => ldOverride.setUserKeyOverride(null)}
+                  >
+                    Use real user
+                  </button>
+                )}
+              </div>
+            )}
             <pre className="ld-admin-json">
               {JSON.stringify(context, null, 2)}
             </pre>
@@ -65,6 +91,8 @@ export function LDAdminToolsPanel({ onClose }: LDAdminToolsPanelProps) {
                     <code className="ld-admin-event-key">{e.eventKey}</code>
                     {e.sent ? (
                       <span className="ld-admin-event-sent" title="Sent to LD">✓</span>
+                    ) : e.deduped ? (
+                      <span className="ld-admin-event-deduped" title="Deduped (not sent)">⊘</span>
                     ) : (
                       <span className="ld-admin-event-not-sent" title="Client not set">−</span>
                     )}

@@ -39,14 +39,14 @@ describe('ThemeContext', () => {
     localStorage.removeItem(THEME_KEY)
   })
 
-  it('defaults to dark theme and applies data-theme', () => {
+  it('defaults to light theme and applies data-theme', () => {
     render(
       <ThemeProvider>
         <TestConsumer />
       </ThemeProvider>
     )
-    expect(screen.getByTestId('current-theme')).toHaveTextContent('dark')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    expect(screen.getByTestId('current-theme')).toHaveTextContent('light')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
   })
 
   it('setTheme updates theme and data-theme', async () => {
@@ -72,9 +72,9 @@ describe('ThemeContext', () => {
       </ThemeProvider>
     )
     await user.click(screen.getByRole('button', { name: 'Toggle' }))
-    expect(screen.getByTestId('current-theme')).toHaveTextContent('light')
-    await user.click(screen.getByRole('button', { name: 'Toggle' }))
     expect(screen.getByTestId('current-theme')).toHaveTextContent('dark')
+    await user.click(screen.getByRole('button', { name: 'Toggle' }))
+    expect(screen.getByTestId('current-theme')).toHaveTextContent('light')
   })
 
   it('persists theme to localStorage', async () => {

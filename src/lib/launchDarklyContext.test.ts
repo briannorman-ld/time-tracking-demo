@@ -94,6 +94,11 @@ describe('launchDarklyContext', () => {
         country: 'US',
         membershipType: 'premium',
       })
+      const ctxWithOverride = buildLaunchDarklyContext(user, 'test-override-key')
+      expect((ctxWithOverride as { user: Record<string, unknown> }).user.key).toBe('test-override-key')
+      expect((ctxWithOverride as { user: Record<string, unknown> }).user.id).toBe('test-override-key')
+      expect((ctxWithOverride as { user: Record<string, unknown> }).user.name).toBe('Alice')
+
       expect((ctx as { device: { key: string } }).device.key).toBe(
         'device-test-uuid-1234'
       )

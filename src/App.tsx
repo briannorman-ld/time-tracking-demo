@@ -4,13 +4,15 @@ import { useLDClient, useFlags } from 'launchdarkly-react-client-sdk'
 import { SessionProvider, useSession } from '@/context/SessionContext'
 import { TimerProvider } from '@/context/TimerContext'
 import { TimeTotalsInvalidatorProvider } from '@/context/TimeTotalsInvalidatorContext'
-import { initFlags, setFlagsLdClient } from '@/lib/flags'
+import { initFlags } from '@/lib/flags'
 import { buildLaunchDarklyContext } from '@/lib/launchDarklyContext'
 import { setLaunchDarklyClient } from '@/lib/launchDarklyEvents'
+import { LdUserKeyOverrideProvider, useLdUserKeyOverride } from '@/context/LdUserKeyOverrideContext'
+import { ShowThemeToggleProvider } from '@/context/ShowThemeToggleContext'
+import { ThemeProvider } from '@/context/ThemeContext'
 import { Header } from '@/components/Header'
 import { AppLayout } from '@/components/AppLayout'
 import { LDAdminToolsPanel } from '@/components/LDAdminTools/LDAdminToolsPanel'
-import { ChatAssistant } from '@/components/ChatAssistant/ChatAssistant'
 import { LoginPage } from '@/pages/LoginPage'
 import { CustomersPage } from '@/pages/CustomersPage'
 import { ReportsPage } from '@/pages/ReportsPage'
@@ -18,16 +20,17 @@ import { TimeEntries } from '@/components/TimeEntries/TimeEntries'
 
 initFlags()
 
-/** Updates LaunchDarkly context when the logged-in user changes. Uses multi-kind context (user + device). */
+/** Updates LaunchDarkly context when the logged-in user or user-key override changes. */
 function LDIdentify() {
   const ldClient = useLDClient()
   const { user } = useSession()
+  const ldOverride = useLdUserKeyOverride()
+  const userKeyOverride = ldOverride?.userKeyOverride ?? null
   useEffect(() => {
-    setFlagsLdClient(ldClient ?? null)
     setLaunchDarklyClient(ldClient ?? null)
     if (!ldClient) return
-    ldClient.identify(buildLaunchDarklyContext(user))
-  }, [ldClient, user])
+    ldClient.identify(buildLaunchDarklyContext(user, userKeyOverride))
+  }, [ldClient, user, userKeyOverride])
   return null
 }
 
@@ -41,14 +44,8 @@ function flagBool(flags: Record<string, unknown>, key: string, defaultValue: boo
 function AppContent() {
   const { user } = useSession()
   const flags = useFlags()
-  const [assistantOpen, setAssistantOpen] = useState(false)
   const [ldAdminOpen, setLdAdminOpen] = useState(false)
-  const assistantEnabled = flagBool(flags, 'assistantEnabled', false)
   const showLdAdminTools = flagBool(flags, 'show-ld-admin-tools', false)
-
-  useEffect(() => {
-    if (!assistantEnabled) setAssistantOpen(false)
-  }, [assistantEnabled])
 
   useEffect(() => {
     if (!showLdAdminTools) setLdAdminOpen(false)
@@ -72,25 +69,6 @@ function AppContent() {
           </Route>
         </Routes>
       </main>
-          {assistantEnabled && (
-        <>
-          {!assistantOpen && (
-            <button
-              type="button"
-              className="assistant-fab"
-              onClick={() => setAssistantOpen(true)}
-              aria-label="Open assistant"
-            >
-              Chat
-            </button>
-          )}
-          {assistantOpen && (
-            <div className="assistant-overlay">
-              <ChatAssistant onClose={() => setAssistantOpen(false)} />
-            </div>
-          )}
-        </>
-      )}
       {showLdAdminTools && ldAdminOpen && (
         <LDAdminToolsPanel onClose={() => setLdAdminOpen(false)} />
       )}
@@ -102,12 +80,18 @@ export default function App() {
   return (
     <BrowserRouter>
       <SessionProvider>
-        <LDIdentify />
-        <TimerProvider>
-          <TimeTotalsInvalidatorProvider>
-            <AppContent />
-          </TimeTotalsInvalidatorProvider>
-        </TimerProvider>
+        <ShowThemeToggleProvider>
+          <ThemeProvider>
+            <LdUserKeyOverrideProvider>
+              <LDIdentify />
+              <TimerProvider>
+                <TimeTotalsInvalidatorProvider>
+                  <AppContent />
+                </TimeTotalsInvalidatorProvider>
+              </TimerProvider>
+            </LdUserKeyOverrideProvider>
+          </ThemeProvider>
+        </ShowThemeToggleProvider>
       </SessionProvider>
     </BrowserRouter>
   )

@@ -28,7 +28,7 @@ function loadTheme(): Theme {
   } catch {
     // ignore
   }
-  return 'dark'
+  return 'light'
 }
 
 function saveTheme(theme: Theme) {
