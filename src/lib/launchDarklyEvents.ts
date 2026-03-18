@@ -3,6 +3,7 @@
  * The app sets the client once (e.g. in a component that has useLDClient); then
  * any module can call trackLaunchDarklyEvent() to send events.
  */
+import { toLocalISOTimestamp } from '@/utils/dateFormat'
 
 type LDClientLike = { track: (key: string, data?: Record<string, unknown>, metricValue?: number) => void }
 
@@ -64,7 +65,7 @@ export function trackLaunchDarklyEvent(
   const isDuplicate = lastSent != null && now - lastSent < GLOBAL_DEDUPE_MS
 
   const entry: LaunchDarklyEventLogEntry = {
-    ts: new Date().toISOString(),
+    ts: toLocalISOTimestamp(),
     eventKey,
     data,
     metricValue,

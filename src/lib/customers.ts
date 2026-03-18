@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import type { Customer } from '@/types/customer'
 import { ensureCustomersSeeded } from '@/seed/seedCustomers'
 import { updateEntriesCustomerName } from '@/lib/entries'
+import { toLocalISOTimestamp } from '@/utils/dateFormat'
 import { v4 as uuidv4 } from 'uuid'
 
 export async function getCustomers(userId: string): Promise<Customer[]> {
@@ -39,7 +40,7 @@ export async function createCustomer(userId: string, name: string): Promise<Cust
     id: uuidv4(),
     userId,
     name: trimmed,
-    createdAt: new Date().toISOString(),
+    createdAt: toLocalISOTimestamp(),
   }
   await db.customers.put(customer)
   return customer

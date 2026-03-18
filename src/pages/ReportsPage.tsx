@@ -8,6 +8,7 @@ import type { TimeEntry } from '@/types/entry'
 import type { Customer } from '@/types/customer'
 import { formatDuration } from '@/utils/duration'
 import { formatDisplayDate, getWeekStart } from '@/utils/dateFormat'
+import { downloadEntriesCsv, downloadEntriesPdf } from '@/utils/exportEntries'
 import { NotesContent } from '@/components/NotesContent'
 import './ReportsPage.css'
 
@@ -38,6 +39,7 @@ export function ReportsPage() {
   const [customerFilter, setCustomerFilter] = useState<string>('')
   const [entries, setEntries] = useState<TimeEntry[]>([])
   const [customers, setCustomers] = useState<Customer[]>([])
+  const [exportingPdf, setExportingPdf] = useState(false)
 
   useEffect(() => {
     trackReportsPageView()
@@ -120,6 +122,31 @@ export function ReportsPage() {
             ))}
           </select>
         </label>
+        <div className="reports-export">
+          <button
+            type="button"
+            className="reports-export-btn"
+            onClick={() => downloadEntriesCsv(entries, startDate, endDate)}
+            disabled={entries.length === 0}
+          >
+            Export CSV
+          </button>
+          <button
+            type="button"
+            className="reports-export-btn"
+            onClick={async () => {
+              setExportingPdf(true)
+              try {
+                await downloadEntriesPdf(entries, startDate, endDate)
+              } finally {
+                setExportingPdf(false)
+              }
+            }}
+            disabled={entries.length === 0 || exportingPdf}
+          >
+            {exportingPdf ? 'Exporting…' : 'Export PDF'}
+          </button>
+        </div>
       </div>
       <div className="reports-summary">
         <div className="reports-summary-card">

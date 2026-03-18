@@ -43,6 +43,32 @@
   color: var(--ld-text);
 }
 
+.reports-export {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+.reports-export-btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--ld-radius);
+  border: 1px solid var(--ld-border);
+  background: var(--ld-surface);
+  color: var(--ld-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.reports-export-btn:hover:not(:disabled) {
+  background: var(--ld-surface-hover);
+}
+
+.reports-export-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .reports-summary {
   display: flex;
   gap: 1rem;

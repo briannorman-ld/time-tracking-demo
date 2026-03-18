@@ -30,6 +30,24 @@
   text-decoration: underline;
 }
 
+.customers-page-actions {
+  margin-bottom: 1.5rem;
+}
+
+.customers-page-new-btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--ld-radius);
+  border: none;
+  background: var(--ld-primary);
+  color: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.customers-page-new-btn:hover {
+  background: var(--ld-primary-hover);
+}
+
 .customers-list {
   list-style: none;
   padding: 0;

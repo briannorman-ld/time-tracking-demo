@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TimerProvider, useTimer } from '@/context/TimerContext'
 import { trackLaunchDarklyEvent, LD_EVENT_TIMER_STARTED } from '@/lib/launchDarklyEvents'
+import { formatDateLocal, toLocalISOTimestamp } from '@/utils/dateFormat'
 
 vi.mock('@/context/SessionContext', () => ({
   useSession: () => ({ user: { id: 'test-user' } }),
@@ -21,10 +22,10 @@ const { mockCreateEntry, saveActiveTimers, clearTimerState, loadLegacyTimerState
       customer: 'Acme',
       project: '',
       notes: '',
-      date: new Date().toISOString().slice(0, 10),
+      date: formatDateLocal(new Date()),
       durationMinutes: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: toLocalISOTimestamp(),
+      updatedAt: toLocalISOTimestamp(),
       source: 'timer',
       schemaVersion: 2,
       billable: true,
@@ -92,8 +93,8 @@ function TestConsumer() {
             notes: 'Manual entry',
             date: '2025-03-16',
             durationMinutes: 30,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: toLocalISOTimestamp(),
+            updatedAt: toLocalISOTimestamp(),
             source: 'manual',
             schemaVersion: 2,
           })

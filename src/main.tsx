@@ -16,6 +16,9 @@ async function init() {
     options: {
       plugins: [new Observability(), new SessionReplay()],
     },
+    // Avoid millions of evaluations: TimeEntries re-renders every second when a timer runs,
+    // and useFlags() would send an evaluation on each read. We only need evaluations at init/change.
+    reactOptions: { sendEventsOnFlagRead: false },
   })
 
   createRoot(document.getElementById('root')!).render(

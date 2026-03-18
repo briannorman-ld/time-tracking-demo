@@ -23,6 +23,7 @@ import {
 import { v4 as uuidv4 } from 'uuid'
 import { trackLaunchDarklyEvent, LD_EVENT_TIMER_STARTED } from '@/lib/launchDarklyEvents'
 import { createEntry } from '@/lib/entries'
+import { formatDateLocal } from '@/utils/dateFormat'
 import { useTimeTotalsInvalidate } from '@/context/TimeTotalsInvalidatorContext'
 import type { TimeEntry } from '@/types/entry'
 
@@ -166,7 +167,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const start = useCallback(() => {
     if (!draftCustomer.trim() || !user) return
     const now = Date.now()
-    const today = new Date().toISOString().slice(0, 10)
+    const today = formatDateLocal(new Date())
     const customer = draftCustomer.trim()
     const notes = draftNotes.trim()
     createEntry(user.id, {
@@ -206,7 +207,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     (customer: string, notes: string) => {
       if (!customer.trim() || !user) return
       const now = Date.now()
-      const today = new Date().toISOString().slice(0, 10)
+      const today = formatDateLocal(new Date())
       const c = customer.trim()
       const n = notes.trim()
       createEntry(user.id, {

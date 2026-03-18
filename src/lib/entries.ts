@@ -9,6 +9,7 @@ import { trackEvent } from '@/utils/trackEvent'
 import {
   trackTimeEntryCreated,
 } from '@/lib/launchDarklyEvents'
+import { toLocalISOTimestamp } from '@/utils/dateFormat'
 
 export type EntrySource = TimeEntry['source']
 
@@ -25,7 +26,7 @@ export async function createEntry(
     hourlyRate?: number
   }
 ): Promise<TimeEntry> {
-  const now = new Date().toISOString()
+  const now = toLocalISOTimestamp()
   const source = params.source ?? 'manual'
   const entry: TimeEntry = {
     id: uuidv4(),
@@ -70,7 +71,7 @@ export async function updateEntry(
   const updated: TimeEntry = {
     ...entry,
     ...updates,
-    updatedAt: new Date().toISOString(),
+    updatedAt: toLocalISOTimestamp(),
   }
   await db.entries.put(updated)
   trackEvent('entry_updated', { entryId, fieldsChanged: Object.keys(updates) })
@@ -149,7 +150,7 @@ export async function duplicateEntry(
 ): Promise<TimeEntry | undefined> {
   const entry = await db.entries.get(entryId)
   if (!entry || entry.userId !== userId) return undefined
-  const now = new Date().toISOString()
+  const now = toLocalISOTimestamp()
   const newEntry: TimeEntry = {
     ...entry,
     id: uuidv4(),

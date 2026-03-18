@@ -3,6 +3,7 @@
  * so the Demo Mode drawer can display the last 50 events.
  */
 import { db } from '@/lib/db'
+import { toLocalISOTimestamp } from '@/utils/dateFormat'
 
 export interface LoggedEvent {
   id?: number
@@ -26,7 +27,7 @@ function persistLog() {
 
 export function trackEvent(name: string, payload?: object): void {
   const event: LoggedEvent = {
-    ts: new Date().toISOString(),
+    ts: toLocalISOTimestamp(),
     name,
     payload,
   }

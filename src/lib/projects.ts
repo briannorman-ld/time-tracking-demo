@@ -4,6 +4,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { db } from '@/lib/db'
 import type { Project } from '@/types/project'
+import { toLocalISOTimestamp } from '@/utils/dateFormat'
 
 export async function getProjectsByCustomer(
   userId: string,
@@ -37,7 +38,7 @@ export async function addProject(
     userId,
     customerId,
     name: name.trim(),
-    createdAt: new Date().toISOString(),
+    createdAt: toLocalISOTimestamp(),
   }
   await db.projects.add(project)
   return project

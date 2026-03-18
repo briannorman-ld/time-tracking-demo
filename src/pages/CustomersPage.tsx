@@ -11,6 +11,7 @@ export function CustomersPage() {
   const { user } = useSession()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   const loadCustomers = () => {
     if (!user) return
@@ -36,6 +37,15 @@ export function CustomersPage() {
       <Link to="/dashboard" className="customers-page-back">
         ← Back to Time
       </Link>
+      <div className="customers-page-actions">
+        <button
+          type="button"
+          className="customers-page-new-btn"
+          onClick={() => setShowCreateModal(true)}
+        >
+          New customer
+        </button>
+      </div>
       <ul className="customers-list">
         {customers.map((c) => (
           <li
@@ -67,6 +77,16 @@ export function CustomersPage() {
           onDeleted={() => {
             loadCustomers()
             setSelectedCustomer(null)
+          }}
+        />
+      )}
+      {showCreateModal && (
+        <CustomerModal
+          customer={null}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={(created) => {
+            setCustomers((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)))
+            setShowCreateModal(false)
           }}
         />
       )}

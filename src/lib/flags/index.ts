@@ -6,6 +6,7 @@
  * - evaluateFlag(flagKey, defaultValue, context?): Returns defaultValue only.
  *   Replace with your SDK's variation(flagKey, defaultValue) using the same contract.
  */
+import { toLocalISOTimestamp } from '@/utils/dateFormat'
 
 let initLogs: string[] = []
 let initDone = false
@@ -25,7 +26,7 @@ export function initFlags(): { initialized: boolean; logs: string[] } {
     return { initialized: true, logs: initLogs }
   }
   initLogs = [
-    `[${new Date().toISOString()}] Flags stub — no SDK. Add LaunchDarkly (or another provider) and init here.`,
+    `[${toLocalISOTimestamp()}] Flags stub — no SDK. Add LaunchDarkly (or another provider) and init here.`,
   ]
   initDone = true
   return { initialized: true, logs: initLogs }

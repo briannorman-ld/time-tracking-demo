@@ -2,6 +2,7 @@
  * Seed 10 demo customers per user. Idempotent: only adds missing names for the user.
  */
 import { db } from '@/lib/db'
+import { toLocalISOTimestamp } from '@/utils/dateFormat'
 
 export const SEED_CUSTOMER_NAMES = [
   'Acme Corp',
@@ -25,7 +26,7 @@ export async function ensureCustomersSeeded(userId: string): Promise<void> {
   const existingNames = new Set(existing.map((c) => c.name))
   const toAdd = SEED_CUSTOMER_NAMES.filter((name) => !existingNames.has(name))
   if (toAdd.length === 0) return
-  const now = new Date().toISOString()
+  const now = toLocalISOTimestamp()
   await db.customers.bulkPut(
     toAdd.map((name) => ({
       id: `${userId}|${name}`,

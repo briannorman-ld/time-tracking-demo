@@ -19,7 +19,7 @@ import { useTimeTotalsInvalidate, useTimeTotalsInvalidatorVersion } from '@/cont
 import { useTimer } from '@/context/TimerContext'
 import { trackEvent } from '@/utils/trackEvent'
 import { formatDuration } from '@/utils/duration'
-import { formatDisplayDate } from '@/utils/dateFormat'
+import { formatDisplayDate, formatEntryRowDate } from '@/utils/dateFormat'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleDown, faAngleUp } from '@fortawesome/free-solid-svg-icons'
 import { NotesContent } from '@/components/NotesContent'
@@ -221,6 +221,29 @@ export function TimeEntries() {
     setFocusDate(formatDateForInput(new Date()))
   }
 
+  // In day view, only show active timers whose entry is for the focused date (or that have no entry yet).
+  const activeTimersForFocusDate =
+    view === 'day'
+      ? timer.activeTimers.filter(
+          (t) => !t.entryId || entries.some((e) => e.id === t.entryId)
+        )
+      : timer.activeTimers
+
+  // Week range for the focused date (Monday–Sunday).
+  const weekRange =
+    view === 'week' ? getWeekRange(parseLocalDate(focusDate)) : null
+  const weekDays = weekRange ? getWeekDays(focusDate) : []
+
+  // Day view: only entries for focusDate. Week view: only entries in the displayed week.
+  const entriesForDisplay =
+    view === 'day'
+      ? entries.filter((e) => e.date === focusDate)
+      : view === 'week' && weekRange
+        ? entries.filter(
+            (e) => e.date >= weekRange.start && e.date <= weekRange.end
+          )
+        : entries
+
   return (
     <div className="time-entries">
       <div className="time-entries-toolbar">
@@ -294,13 +317,13 @@ export function TimeEntries() {
             <h3>
               {view === 'day' ? formatDisplayDate(focusDate) : `Week of ${formatDisplayDate(focusDate)}`}
             </h3>
-            {view === 'week' && (
+            {view === 'week' && weekDays.length > 0 && (
               <div className="time-entries-week-grid-wrapper">
                 <table className="time-entries-week-grid">
                   <thead>
                     <tr>
                       <th>Customer</th>
-                      {getWeekDays(focusDate).map((d) => (
+                      {weekDays.map((d) => (
                         <th key={d}>{formatDisplayDate(d)}</th>
                       ))}
                       <th>Total</th>
@@ -308,10 +331,10 @@ export function TimeEntries() {
                   </thead>
                   <tbody>
                     {Array.from(
-                      new Set(entries.map((e) => e.customer))
+                      new Set(entriesForDisplay.map((e) => e.customer))
                     ).sort().map((customerName) => {
-                      const byDay = getWeekDays(focusDate).reduce<Record<string, number>>((acc, d) => {
-                        acc[d] = entries
+                      const byDay = weekDays.reduce<Record<string, number>>((acc, d) => {
+                        acc[d] = entriesForDisplay
                           .filter((e) => e.customer === customerName && e.date === d)
                           .reduce((s, e) => s + e.durationMinutes, 0)
                         return acc
@@ -320,7 +343,7 @@ export function TimeEntries() {
                       return (
                         <tr key={customerName}>
                           <td>{customerName}</td>
-                          {getWeekDays(focusDate).map((d) => (
+                          {weekDays.map((d) => (
                             <td key={d}>
                               {byDay[d] ? formatDuration(byDay[d]) : '—'}
                             </td>
@@ -336,7 +359,7 @@ export function TimeEntries() {
             {tileLayout ? (
               <div className="time-entries-tiles">
                 <div className="time-entries-tiles-grid">
-                  {timer.activeTimers.map((t) => {
+                  {activeTimersForFocusDate.map((t) => {
                     const sec = timer.getElapsedSec(t.id)
                     const pad = (n: number) => String(n).padStart(2, '0')
                     const h = Math.floor(sec / 3600)
@@ -410,13 +433,18 @@ export function TimeEntries() {
                             </>
                           )}
                         </div>
+                        {entry && (
+                          <div className="entry-tile-date-wrap">
+                            <span className="entry-tile-date">{formatEntryRowDate(entry.date)}</span>
+                          </div>
+                        )}
                       </div>
                     )
                   })}
-                  {entries
-                    .filter((e) => !timer.activeTimers.some((t) => t.entryId === e.id))
+                  {entriesForDisplay
+                    .filter((e) => !activeTimersForFocusDate.some((t) => t.entryId === e.id))
                     .map((e) => {
-                      const pausedMatch = timer.activeTimers.find(
+                      const pausedMatch = activeTimersForFocusDate.find(
                         (t) =>
                           t.status === 'paused' &&
                           !t.entryId &&
@@ -494,6 +522,9 @@ export function TimeEntries() {
                               </>
                             )}
                           </div>
+                          <div className="entry-tile-date-wrap">
+                            <span className="entry-tile-date">{formatEntryRowDate(e.date)}</span>
+                          </div>
                         </div>
                       )
                     })}
@@ -501,9 +532,9 @@ export function TimeEntries() {
               </div>
             ) : (
               <>
-                {timer.activeTimers.length > 0 && (
+                {activeTimersForFocusDate.length > 0 && (
                   <ul className="time-entries-active-timers">
-                    {timer.activeTimers.map((t) => {
+                    {activeTimersForFocusDate.map((t) => {
                       const sec = timer.getElapsedSec(t.id)
                       const pad = (n: number) => String(n).padStart(2, '0')
                       const h = Math.floor(sec / 3600)
@@ -580,16 +611,19 @@ export function TimeEntries() {
                               </>
                             )
                           })()}
+                          {entry && (
+                            <span className="entry-date entry-date-end">{formatEntryRowDate(entry.date)}</span>
+                          )}
                         </li>
                       )
                     })}
                   </ul>
                 )}
                 <ul>
-                  {entries
-                    .filter((e) => !timer.activeTimers.some((t) => t.entryId === e.id))
+                  {entriesForDisplay
+                    .filter((e) => !activeTimersForFocusDate.some((t) => t.entryId === e.id))
                     .map((e) => {
-                      const pausedMatch = timer.activeTimers.find(
+                      const pausedMatch = activeTimersForFocusDate.find(
                         (t) =>
                           t.status === 'paused' &&
                           !t.entryId &&
@@ -660,6 +694,7 @@ export function TimeEntries() {
                                 </span>
                               )
                             })()}
+                            <span className="entry-date entry-date-end">{formatEntryRowDate(e.date)}</span>
                           </div>
                           {e.notes && isNotesLong(e.notes) && (
                             <span className="entry-notes-toggle-wrap">

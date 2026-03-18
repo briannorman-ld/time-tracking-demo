@@ -2,6 +2,8 @@
  * Rules-based intent parser for the Chat Assistant. No AI or remote calls.
  * Replace the parse() implementation with a call to your AI backend when migrating.
  */
+import { formatDateLocal } from '@/utils/dateFormat'
+
 export type Intent =
   | 'create_time_entry'
   | 'update_time_entry'
@@ -16,7 +18,7 @@ export interface ActionProposal {
   confidence: number
 }
 
-const TODAY = new Date().toISOString().slice(0, 10)
+const TODAY = formatDateLocal(new Date())
 
 function extractMinutes(text: string): number | null {
   const patterns = [

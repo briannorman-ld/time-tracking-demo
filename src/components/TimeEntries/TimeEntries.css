@@ -139,6 +139,12 @@
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
+.entry-tile-date-wrap {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  text-align: right;
+}
+
 .entry-tile:hover {
   background: var(--ld-surface-hover);
   border-color: var(--ld-border-strong);
@@ -218,11 +224,16 @@
   flex-shrink: 0;
 }
 
+.entry-tile-row .entry-tile-date {
+  font-size: 0.9rem;
+  color: var(--ld-text-muted);
+  white-space: nowrap;
+}
+
 .entry-tile-row .entry-tile-duration {
   font-variant-numeric: tabular-nums;
   color: var(--ld-text-muted);
   font-size: 0.95rem;
-  margin-left: auto;
 }
 
 .entry-tile-row .entry-tile-duration.entry-timer-live {
@@ -240,6 +251,12 @@
 .entry-tile-customer {
   font-weight: 600;
   color: var(--ld-text);
+}
+
+.entry-tile-date {
+  font-size: 0.9rem;
+  color: var(--ld-text-muted);
+  white-space: nowrap;
 }
 
 .entry-tile-duration {
@@ -405,6 +422,17 @@
   font-weight: 600;
   min-width: 120px;
   color: var(--ld-text);
+}
+
+.time-entries-list .entry-date,
+.time-entries-active-timers .entry-date {
+  color: var(--ld-text-muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.entry-date-end {
+  margin-left: auto;
 }
 
 .entry-project {
@@ -662,30 +690,18 @@
   margin-bottom: 1rem;
 }
 
-.time-entries-add-time-card .entry-form.full-form {
+.time-entries-add-time-card .entry-form.entry-form-block {
   max-width: none;
   padding: 0;
   background: transparent;
   border: none;
   border-radius: 0;
+  margin-bottom: 0;
 }
 
-.time-entries-add-time-card .entry-form.full-form input,
-.time-entries-add-time-card .entry-form.full-form select {
+.time-entries-add-time-card .entry-form.entry-form-block input,
+.time-entries-add-time-card .entry-form.entry-form-block select {
   max-width: none;
-}
-
-/* Notes editor: no extra inner box inside the card */
-.time-entries-add-time-card .rich-notes-editor {
-  border: none;
-  background: transparent;
-  border-bottom: 1px solid var(--ld-border);
-  border-radius: 0;
-}
-
-.time-entries-add-time-card .rich-notes-editor .rich-notes-toolbar {
-  background: transparent;
-  border-bottom: 1px solid var(--ld-border);
 }
 
 .time-entries-add-inline {

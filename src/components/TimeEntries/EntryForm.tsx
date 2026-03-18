@@ -38,6 +38,9 @@ interface EntryFormProps {
   initialBillable?: boolean
 }
 
+/** Default billable when not shown in UI (checkbox removed). */
+const DEFAULT_BILLABLE = true
+
 export function EntryForm({
   focusDate,
   customerNames,
@@ -63,7 +66,7 @@ export function EntryForm({
   const [durationHours, setDurationHours] = useState(
     () => (initialDuration ? minutesToDecimal(initialDuration) : 0.5)
   )
-  const [billable, setBillable] = useState(initialBillable ?? true)
+  const billable = initialBillable ?? DEFAULT_BILLABLE
   const isEdit = Boolean(entryId)
   const customerOptions =
     initialCustomer && !customerNames.includes(initialCustomer)
@@ -180,9 +183,9 @@ export function EntryForm({
   }
 
   return (
-    <form className="entry-form full-form" onSubmit={handleSubmit}>
-      <label>
-        Customer
+    <form className="entry-form entry-form-block" onSubmit={handleSubmit}>
+      <h3 className="entry-form-title">Manual entry</h3>
+      <div className="entry-form-customer-wrap">
         <CustomerSelect
           value={customer}
           onChange={setCustomer}
@@ -209,17 +212,15 @@ export function EntryForm({
             </button>
           </div>
         )}
-      </label>
-      <label>
-        Date
+      </div>
+      <div className="entry-form-date-duration">
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
+          className="entry-form-date"
+          aria-label="Date"
         />
-      </label>
-      <label>
-        Duration (hours)
         <input
           type="number"
           min={0}
@@ -227,30 +228,25 @@ export function EntryForm({
           step={0.01}
           value={durationHours}
           onChange={(e) => setDurationHours(Number(e.target.value))}
+          className="entry-form-duration"
+          aria-label="Duration (hours)"
+          title="Hours"
         />
-      </label>
-      <div className="entry-form-notes-wrap">
-        <span className="entry-form-notes-label">Notes</span>
-        <RichNotesEditor
-          value={notes}
-          onChange={setNotes}
-          placeholder="Optional notes — bold, lists, and more"
-          className="entry-form-notes-editor"
-          minHeight="6rem"
-        />
+        <span className="entry-form-duration-suffix">hrs</span>
       </div>
-      <label className="entry-form-checkbox">
-        <input
-          type="checkbox"
-          checked={billable}
-          onChange={(e) => setBillable(e.target.checked)}
-        />
-        Billable
-      </label>
+      <RichNotesEditor
+        value={notes}
+        onChange={setNotes}
+        placeholder="Notes (optional)"
+        minHeight="4rem"
+        className="entry-form-notes-editor"
+      />
       <div className="entry-form-actions">
-        <button type="submit">{isEdit ? 'Save' : 'Create entry'}</button>
+        <button type="submit" className="entry-form-submit">
+          {isEdit ? 'Save' : 'Create entry'}
+        </button>
         {onCancel && (
-          <button type="button" onClick={onCancel}>
+          <button type="button" onClick={onCancel} className="entry-form-cancel">
             {isEdit ? 'Cancel' : 'Discard'}
           </button>
         )}

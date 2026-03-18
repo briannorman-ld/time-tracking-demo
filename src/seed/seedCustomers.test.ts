@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ensureCustomersSeeded, SEED_CUSTOMER_NAMES } from '@/seed/seedCustomers'
+import { toLocalISOTimestamp } from '@/utils/dateFormat'
 
 const stored: Array<{ id: string; userId: string; name: string; createdAt: string }> = []
 
@@ -51,7 +52,7 @@ describe('seedCustomers', () => {
       id: 'user2|Acme Corp',
       userId: 'user2',
       name: 'Acme Corp',
-      createdAt: new Date().toISOString(),
+      createdAt: toLocalISOTimestamp(),
     })
     const { db } = await import('@/lib/db')
     ;(db.customers.bulkPut as ReturnType<typeof vi.fn>).mockClear()
@@ -70,7 +71,7 @@ describe('seedCustomers', () => {
         id: `${userId}|${name}`,
         userId,
         name,
-        createdAt: new Date().toISOString(),
+        createdAt: toLocalISOTimestamp(),
       })
     }
     const { db } = await import('@/lib/db')
