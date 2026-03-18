@@ -48,14 +48,20 @@ describe('exportEntries', () => {
   })
 
   describe('downloadEntriesCsv', () => {
-    let createElement: typeof document.createElement
-    let createObjectURL: typeof URL.createObjectURL
-    let revokeObjectURL: typeof URL.revokeObjectURL
+    let createObjectURLSpy: ReturnType<typeof vi.spyOn>
+    let revokeObjectURLSpy: ReturnType<typeof vi.spyOn>
 
     beforeEach(() => {
-      createElement = vi.spyOn(document, 'createElement')
-      createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
-      revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+      // jsdom may not define URL.createObjectURL / revokeObjectURL; polyfill so we can spy
+      if (typeof URL.createObjectURL === 'undefined') {
+        URL.createObjectURL = vi.fn().mockReturnValue('blob:mock')
+      }
+      if (typeof URL.revokeObjectURL === 'undefined') {
+        URL.revokeObjectURL = vi.fn()
+      }
+      vi.spyOn(document, 'createElement')
+      createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock') as ReturnType<typeof vi.spyOn>
+      revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {}) as ReturnType<typeof vi.spyOn>
     })
 
     afterEach(() => {
@@ -72,8 +78,8 @@ describe('exportEntries', () => {
 
       expect(mockLink.download).toBe('time-entries-2026-03-01-to-2026-03-31.csv')
       expect(mockLink.click).toHaveBeenCalled()
-      expect(createObjectURL).toHaveBeenCalled()
-      expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock')
+      expect(createObjectURLSpy).toHaveBeenCalled()
+      expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:mock')
       appendChild.mockRestore()
       removeChild.mockRestore()
     })

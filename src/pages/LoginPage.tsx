@@ -144,7 +144,7 @@ export function LoginPage() {
 
   return (
     <div className="login-page">
-      <h1>Time Tracker Demo</h1>
+      <h1>Time Tracker 3000</h1>
       <p className="login-subtitle">Sign in with your account</p>
       <form className="login-form" onSubmit={handleLoginSubmit}>
         <div className="login-combobox" ref={dropdownRef}>

@@ -31,8 +31,8 @@ function escapeCsvCell(value: string): string {
  */
 export function buildEntriesCsv(
   entries: TimeEntry[],
-  startDate: string,
-  endDate: string
+  _startDate: string,
+  _endDate: string
 ): string {
   const header = ['Date', 'Customer', 'Duration (hours)', 'Duration (min)', 'Notes', 'Billable']
   const rows = entries.map((e) => [
@@ -86,7 +86,7 @@ export async function downloadEntriesPdf(
   const { jsPDF } = await import('jspdf')
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' })
-  const pageWidth = doc.getPageWidth()
+  const pageWidth = doc.internal.pageSize.getWidth()
   const margin = 40
   const contentWidth = pageWidth - margin * 2
   const rowHeight = 18
@@ -108,7 +108,7 @@ export async function downloadEntriesPdf(
 
   doc.setFontSize(9)
   const headers = ['Date', 'Customer', 'Duration', 'Notes', 'Billable']
-  doc.setFont(undefined, 'bold')
+  doc.setFont('helvetica', 'bold')
   let x = margin
   headers.forEach((h, i) => {
     doc.text(h, x + 2, y - 5)
@@ -117,7 +117,7 @@ export async function downloadEntriesPdf(
   doc.setDrawColor(200, 200, 200)
   doc.line(margin, y, pageWidth - margin, y)
   y += rowHeight
-  doc.setFont(undefined, 'normal')
+  doc.setFont('helvetica', 'normal')
 
   const totalMinutes = entries.reduce((s, e) => s + e.durationMinutes, 0)
   const totalHours = (Math.round(totalMinutes * 100) / 100) / 60

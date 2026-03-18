@@ -16,7 +16,7 @@ export function Header({ onOpenLDAdmin }: HeaderProps) {
   return (
     <header className="app-header">
       <div className="app-header-inner">
-        <span className="app-header-title">Time Tracker Demo</span>
+        <span className="app-header-title">Time Tracker 3000</span>
         <div className="app-header-actions">
           {onOpenLDAdmin && (
             <button
