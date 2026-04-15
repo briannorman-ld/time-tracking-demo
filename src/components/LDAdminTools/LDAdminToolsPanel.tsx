@@ -1,11 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSession } from '@/context/SessionContext'
 import { useLdUserKeyOverride } from '@/context/LdUserKeyOverrideContext'
+import { useTimeTotalsInvalidate } from '@/context/TimeTotalsInvalidatorContext'
+import { useTimer } from '@/context/TimerContext'
+import { useDashboardFocusDate } from '@/context/DashboardFocusDateContext'
 import { buildLaunchDarklyContext } from '@/lib/launchDarklyContext'
 import {
   getRecentLaunchDarklyEvents,
   type LaunchDarklyEventLogEntry,
 } from '@/lib/launchDarklyEvents'
+import { seedLdDemoTimeEntries } from '@/lib/seedLdDemoTimeEntries'
+import { formatDisplayDate } from '@/utils/dateFormat'
 import './LDAdminToolsPanel.css'
 
 function randomUserKey(): string {
@@ -19,9 +24,37 @@ interface LDAdminToolsPanelProps {
 export function LDAdminToolsPanel({ onClose }: LDAdminToolsPanelProps) {
   const { user } = useSession()
   const ldOverride = useLdUserKeyOverride()
+  const invalidateTotals = useTimeTotalsInvalidate()
+  const { addPausedTimer } = useTimer()
+  const { focusDate } = useDashboardFocusDate()
   const [events, setEvents] = useState<LaunchDarklyEventLogEntry[]>([])
+  const [seeding, setSeeding] = useState(false)
+  const [seedMessage, setSeedMessage] = useState<string | null>(null)
+  const seedingRef = useRef(false)
 
   const context = buildLaunchDarklyContext(user ?? null, ldOverride?.userKeyOverride ?? null)
+
+  const handleSeedTimeEntries = useCallback(async () => {
+    if (!user || seedingRef.current) return
+    seedingRef.current = true
+    setSeeding(true)
+    setSeedMessage(null)
+    try {
+      const count = await seedLdDemoTimeEntries(user.id, {
+        date: focusDate,
+        registerAsPausedTimer: (entry) => addPausedTimer(entry),
+      })
+      setSeedMessage(
+        `Added ${count} time entries for ${formatDisplayDate(focusDate)}.`
+      )
+      invalidateTotals?.()
+    } catch (e) {
+      setSeedMessage(e instanceof Error ? e.message : 'Could not seed entries.')
+    } finally {
+      seedingRef.current = false
+      setSeeding(false)
+    }
+  }, [user, invalidateTotals, focusDate, addPausedTimer])
 
   useEffect(() => {
     setEvents(getRecentLaunchDarklyEvents(50))
@@ -113,6 +146,17 @@ export function LDAdminToolsPanel({ onClose }: LDAdminToolsPanelProps) {
               )}
             </ol>
           </section>
+        </div>
+        <div className="ld-admin-footer">
+          <button
+            type="button"
+            className="ld-admin-btn ld-admin-btn-seed"
+            disabled={!user || seeding}
+            onClick={handleSeedTimeEntries}
+          >
+            {seeding ? 'Seeding…' : 'Seed time entries'}
+          </button>
+          {seedMessage ? <p className="ld-admin-seed-message">{seedMessage}</p> : null}
         </div>
       </div>
     </div>

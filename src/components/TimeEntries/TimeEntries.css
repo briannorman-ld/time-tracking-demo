@@ -382,10 +382,10 @@
 
 .time-entries-list li,
 .time-entries-active-timers li {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 0.75rem;
   align-items: center;
-  gap: 0.75rem;
   padding: 0.75rem;
   border: 1px solid var(--ld-border);
   border-radius: var(--ld-radius-lg);
@@ -405,13 +405,46 @@
 }
 
 .entry-row-content {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) 6rem minmax(0, 1fr) auto;
+  column-gap: 1rem;
   align-items: center;
-  gap: 0.75rem;
-  flex: 1;
   min-width: 0;
   cursor: pointer;
+}
+
+.entry-row-content .entry-customer {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entry-row-content .entry-duration {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  justify-self: stretch;
+}
+
+.entry-notes-cell {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.entry-notes-cell .entry-notes {
+  flex: 1;
+  min-width: 0;
+}
+
+.entry-notes-cell .entry-notes-toggle-wrap {
+  margin-left: 0;
+  flex-shrink: 0;
+}
+
+.entry-row-content .entry-date-end {
+  margin-left: 0;
+  justify-self: end;
 }
 
 .time-entries-active-timers li.entry-row-clickable {
@@ -420,7 +453,7 @@
 
 .entry-customer {
   font-weight: 600;
-  min-width: 120px;
+  min-width: 0;
   color: var(--ld-text);
 }
 

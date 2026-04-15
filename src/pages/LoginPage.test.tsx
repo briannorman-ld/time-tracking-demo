@@ -44,7 +44,7 @@ describe('LoginPage', () => {
 
   it('renders login form with username and password', () => {
     render(<LoginPage />)
-    expect(screen.getByRole('heading', { name: /time tracker demo/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /time tracker 3000/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/username/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()

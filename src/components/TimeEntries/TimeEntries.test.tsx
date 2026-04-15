@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { DashboardFocusDateProvider } from '@/context/DashboardFocusDateContext'
 import { TimeEntries } from './TimeEntries'
+
+function renderTimeEntries() {
+  return render(
+    <DashboardFocusDateProvider>
+      <TimeEntries />
+    </DashboardFocusDateProvider>
+  )
+}
 
 vi.mock('launchdarkly-react-client-sdk', () => ({
   useFlags: vi.fn(),
@@ -77,7 +86,7 @@ describe('TimeEntries', () => {
   it('renders list layout (ul) when tile-layout flag is false', async () => {
     const { useFlags } = await getMocks()
     vi.mocked(useFlags).mockReturnValue({ 'tile-layout': false })
-    render(<TimeEntries />)
+    renderTimeEntries()
     await screen.findByRole('list', { hidden: true })
     expect(document.querySelector('.time-entries-tiles')).not.toBeInTheDocument()
     expect(document.querySelector('ul')).toBeInTheDocument()
@@ -86,7 +95,7 @@ describe('TimeEntries', () => {
   it('renders tile layout when tile-layout flag is true', async () => {
     const { useFlags } = await getMocks()
     vi.mocked(useFlags).mockReturnValue({ 'tile-layout': true })
-    render(<TimeEntries />)
+    renderTimeEntries()
     expect(document.querySelector('.time-entries-tiles')).toBeInTheDocument()
     expect(document.querySelector('.time-entries-tiles-grid')).toBeInTheDocument()
   })
@@ -94,7 +103,7 @@ describe('TimeEntries', () => {
   it('accepts camelCase tileLayout from useFlags', async () => {
     const { useFlags } = await getMocks()
     vi.mocked(useFlags).mockReturnValue({ tileLayout: true })
-    render(<TimeEntries />)
+    renderTimeEntries()
     expect(document.querySelector('.time-entries-tiles')).toBeInTheDocument()
   })
 })

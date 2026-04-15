@@ -16,6 +16,7 @@ import {
 } from '@/lib/preferences'
 import type { TimeEntry } from '@/types/entry'
 import { useTimeTotalsInvalidate, useTimeTotalsInvalidatorVersion } from '@/context/TimeTotalsInvalidatorContext'
+import { useDashboardFocusDate } from '@/context/DashboardFocusDateContext'
 import { useTimer } from '@/context/TimerContext'
 import { trackEvent } from '@/utils/trackEvent'
 import { formatDuration } from '@/utils/duration'
@@ -90,7 +91,7 @@ function getWeekDays(dateStr: string): string[] {
 export function TimeEntries() {
   const { user } = useSession()
   const [view, setView] = useState<'day' | 'week'>('day')
-  const [focusDate, setFocusDate] = useState(() => formatDateForInput(new Date()))
+  const { focusDate, setFocusDate } = useDashboardFocusDate()
   const [entries, setEntries] = useState<TimeEntry[]>([])
   const [customers, setCustomers] = useState<string[]>([])
   const [showAddTime, setShowAddTime] = useState(false)
@@ -570,50 +571,56 @@ export function TimeEntries() {
                               <button type="button" className="entry-btn-resume" onClick={() => timer.resume(t.id)} title="Resume timer (does not create an entry)" aria-label="Resume">▶</button>
                             )}
                           </span>
-                          <span className="entry-customer">{t.customer}</span>
-                          <span className={`entry-duration ${showEntryDuration ? '' : 'entry-timer-live'}`}>
-                            {showEntryDuration ? formatDuration(entry!.durationMinutes) : durationStr}
-                          </span>
-                          {(entry?.notes ?? t.notes) && (() => {
-                            const notesHtml = entry?.notes ?? t.notes ?? ''
-                            const notesId = t.entryId ?? t.id
-                            const long = isNotesLong(notesHtml)
-                            const expanded = expandedNotesIds.has(notesId)
-                            if (!long) {
-                              return (
-                                <span className="entry-notes">
-                                  <NotesContent html={notesHtml} />
-                                </span>
-                              )
-                            }
-                            return (
-                              <>
-                                <span className={expanded ? 'entry-notes entry-notes-expanded' : 'entry-notes entry-notes-collapsed'}>
-                                  {expanded ? (
-                                    <NotesContent html={notesHtml} />
-                                  ) : (
-                                    <span className="entry-notes-preview">
-                                      {stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
-                                      {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
+                          <div className="entry-row-content">
+                            <span className="entry-customer">{t.customer}</span>
+                            <span className={`entry-duration ${showEntryDuration ? '' : 'entry-timer-live'}`}>
+                              {showEntryDuration ? formatDuration(entry!.durationMinutes) : durationStr}
+                            </span>
+                            <div className="entry-notes-cell">
+                              {(entry?.notes ?? t.notes) ? (() => {
+                                const notesHtml = entry?.notes ?? t.notes ?? ''
+                                const notesId = t.entryId ?? t.id
+                                const long = isNotesLong(notesHtml)
+                                const expanded = expandedNotesIds.has(notesId)
+                                if (!long) {
+                                  return (
+                                    <span className="entry-notes">
+                                      <NotesContent html={notesHtml} />
                                     </span>
-                                  )}
-                                </span>
-                                <span className="entry-notes-toggle-wrap">
-                                  <button
-                                    type="button"
-                                    className="entry-notes-toggle"
-                                    onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(notesId) }}
-                                    aria-label={expanded ? 'Collapse notes' : 'Expand notes'}
-                                  >
-                                    <FontAwesomeIcon icon={expanded ? faAngleUp : faAngleDown} />
-                                  </button>
-                                </span>
-                              </>
-                            )
-                          })()}
-                          {entry && (
-                            <span className="entry-date entry-date-end">{formatEntryRowDate(entry.date)}</span>
-                          )}
+                                  )
+                                }
+                                return (
+                                  <>
+                                    <span className={expanded ? 'entry-notes entry-notes-expanded' : 'entry-notes entry-notes-collapsed'}>
+                                      {expanded ? (
+                                        <NotesContent html={notesHtml} />
+                                      ) : (
+                                        <span className="entry-notes-preview">
+                                          {stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
+                                          {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
+                                        </span>
+                                      )}
+                                    </span>
+                                    <span className="entry-notes-toggle-wrap">
+                                      <button
+                                        type="button"
+                                        className="entry-notes-toggle"
+                                        onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(notesId) }}
+                                        aria-label={expanded ? 'Collapse notes' : 'Expand notes'}
+                                      >
+                                        <FontAwesomeIcon icon={expanded ? faAngleUp : faAngleDown} />
+                                      </button>
+                                    </span>
+                                  </>
+                                )
+                              })() : null}
+                            </div>
+                            {entry ? (
+                              <span className="entry-date entry-date-end">{formatEntryRowDate(entry.date)}</span>
+                            ) : (
+                              <span className="entry-date entry-date-end" aria-hidden />
+                            )}
+                          </div>
                         </li>
                       )
                     })}
@@ -670,44 +677,46 @@ export function TimeEntries() {
                             <span className="entry-duration">
                               {formatDuration(e.durationMinutes)}
                             </span>
-                            {e.notes && (() => {
-                              const notesHtml = e.notes
-                              const long = isNotesLong(notesHtml)
-                              const expanded = expandedNotesIds.has(e.id)
-                              if (!long) {
-                                return (
-                                  <span className="entry-notes">
-                                    <NotesContent html={notesHtml} />
-                                  </span>
-                                )
-                              }
-                              return (
-                                <span className={expanded ? 'entry-notes entry-notes-expanded' : 'entry-notes entry-notes-collapsed'}>
-                                  {expanded ? (
-                                    <NotesContent html={notesHtml} />
-                                  ) : (
-                                    <span className="entry-notes-preview">
-                                      {stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
-                                      {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
+                            <div className="entry-notes-cell">
+                              {e.notes ? (() => {
+                                const notesHtml = e.notes
+                                const long = isNotesLong(notesHtml)
+                                const expanded = expandedNotesIds.has(e.id)
+                                if (!long) {
+                                  return (
+                                    <span className="entry-notes">
+                                      <NotesContent html={notesHtml} />
                                     </span>
-                                  )}
-                                </span>
-                              )
-                            })()}
+                                  )
+                                }
+                                return (
+                                  <>
+                                    <span className={expanded ? 'entry-notes entry-notes-expanded' : 'entry-notes entry-notes-collapsed'}>
+                                      {expanded ? (
+                                        <NotesContent html={notesHtml} />
+                                      ) : (
+                                        <span className="entry-notes-preview">
+                                          {stripHtmlForPreview(notesHtml).slice(0, NOTES_PREVIEW_MAX_LEN)}
+                                          {stripHtmlForPreview(notesHtml).length > NOTES_PREVIEW_MAX_LEN ? '…' : ''}
+                                        </span>
+                                      )}
+                                    </span>
+                                    <span className="entry-notes-toggle-wrap">
+                                      <button
+                                        type="button"
+                                        className="entry-notes-toggle"
+                                        onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(e.id) }}
+                                        aria-label={expandedNotesIds.has(e.id) ? 'Collapse notes' : 'Expand notes'}
+                                      >
+                                        <FontAwesomeIcon icon={expandedNotesIds.has(e.id) ? faAngleUp : faAngleDown} />
+                                      </button>
+                                    </span>
+                                  </>
+                                )
+                              })() : null}
+                            </div>
                             <span className="entry-date entry-date-end">{formatEntryRowDate(e.date)}</span>
                           </div>
-                          {e.notes && isNotesLong(e.notes) && (
-                            <span className="entry-notes-toggle-wrap">
-                              <button
-                                type="button"
-                                className="entry-notes-toggle"
-                                onClick={(ev) => { ev.stopPropagation(); toggleNotesExpanded(e.id) }}
-                                aria-label={expandedNotesIds.has(e.id) ? 'Collapse notes' : 'Expand notes'}
-                              >
-                                <FontAwesomeIcon icon={expandedNotesIds.has(e.id) ? faAngleUp : faAngleDown} />
-                              </button>
-                            </span>
-                          )}
                         </li>
                       )
                     })}

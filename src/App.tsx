@@ -4,6 +4,7 @@ import { useLDClient, useFlags } from 'launchdarkly-react-client-sdk'
 import { SessionProvider, useSession } from '@/context/SessionContext'
 import { TimerProvider } from '@/context/TimerContext'
 import { TimeTotalsInvalidatorProvider } from '@/context/TimeTotalsInvalidatorContext'
+import { DashboardFocusDateProvider } from '@/context/DashboardFocusDateContext'
 import { initFlags } from '@/lib/flags'
 import { buildLaunchDarklyContext } from '@/lib/launchDarklyContext'
 import { setLaunchDarklyClient } from '@/lib/launchDarklyEvents'
@@ -86,7 +87,9 @@ export default function App() {
               <LDIdentify />
               <TimerProvider>
                 <TimeTotalsInvalidatorProvider>
-                  <AppContent />
+                  <DashboardFocusDateProvider>
+                    <AppContent />
+                  </DashboardFocusDateProvider>
                 </TimeTotalsInvalidatorProvider>
               </TimerProvider>
             </LdUserKeyOverrideProvider>

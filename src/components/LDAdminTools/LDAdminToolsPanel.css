@@ -156,3 +156,27 @@
   border-radius: 4px;
   overflow: auto;
 }
+
+.ld-admin-footer {
+  flex-shrink: 0;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+}
+
+.ld-admin-btn-seed {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  font-weight: 500;
+}
+
+.ld-admin-btn-seed:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.ld-admin-seed-message {
+  margin: 0.65rem 0 0 0;
+  font-size: 0.8rem;
+  color: #444;
+}
