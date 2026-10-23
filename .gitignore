@@ -6,3 +6,7 @@
 node_modules/.vite
 .vite
 node_modules
+
+# Build output and incremental TS state
+dist
+*.tsbuildinfo
