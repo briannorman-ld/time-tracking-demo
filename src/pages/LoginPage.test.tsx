@@ -35,7 +35,7 @@ describe('LoginPage', () => {
     mockLogin.mockClear()
     mockSetUser.mockClear()
     mockCreateUser.mockClear()
-    mockGetAllUsers.mockReturnValue(seedUsers as any)
+    mockGetAllUsers.mockReturnValue(seedUsers as never)
     mockGetDemoUserByUsername.mockImplementation((username: string) => {
       const u = seedUsers.find((x) => x.username === username)
       return u ?? undefined

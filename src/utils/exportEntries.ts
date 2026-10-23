@@ -15,10 +15,11 @@ function formatPdfDate(dateStr: string): string {
 }
 
 function stripHtml(html: string): string {
-  if (typeof document === 'undefined') return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-  const div = document.createElement('div')
-  div.innerHTML = html
-  return (div.textContent ?? '').replace(/\s+/g, ' ').trim()
+  if (typeof DOMParser === 'undefined') return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  // DOMParser builds an inert document: unlike innerHTML on a detached div, nothing in the
+  // notes (an <img onerror>, say) can run while we read the text back out.
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  return (doc.body.textContent ?? '').replace(/\s+/g, ' ').trim()
 }
 
 function escapeCsvCell(value: string): string {

@@ -11,7 +11,9 @@ export function getRoundingPreference(): RoundingMinutes {
     if (v === null) return 0
     const n = parseInt(v, 10)
     if ([0, 5, 10, 15, 30].includes(n)) return n as RoundingMinutes
-  } catch {}
+  } catch {
+    // localStorage can be unavailable (private mode, blocked storage); fall back to no rounding.
+  }
   return 0
 }
 
